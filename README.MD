@@ -1,8 +1,7 @@
-### 1. Requirments
 
-### 2. Install dependencies
+### 1. Install dependencies
 
-We're using [Lerna](https://github.com/lerna/lerna) to maintain this project. Please take a look at Lerna repo before continue.
+I'm using "yarn" instead of "npm" and  [Lerna](https://github.com/lerna/lerna) to maintain this project. Please install yarn and lerna before continue
 
 Run the following command to install all dependencies needed for development.
 
@@ -10,15 +9,12 @@ Run the following command to install all dependencies needed for development.
 npx lerna bootstrap
 ```
 
-#### Start server
-
+#### 2 Start server and client simultaneously
+i'm using concurrently package for run multipe command. Run the following command to install "concurrently"
 ```
-yarn dev:server
+npm i -g concurrently
 ```
-
-#### Start client
-
+after installed concurrently package, run the following command to start server and client
 ```
-yarn dev:client
+yarn start
 ```
-
