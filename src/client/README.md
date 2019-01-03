@@ -1,6 +1,6 @@
-# client
+# nuxtjs
 
-> My majestic Nuxt.js project
+> My supreme Nuxt.js project
 
 ## Build Setup
 

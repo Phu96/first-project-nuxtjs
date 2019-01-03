@@ -1,7 +1,7 @@
 const pkg = require('./package')
 
 module.exports = {
-  mode: 'spa',
+  mode: 'universal',
 
   /*
   ** Headers of the page
@@ -26,14 +26,15 @@ module.exports = {
   /*
   ** Global CSS
   */
-  css: [
-  ],
+ css: [
+  '@/assets/element-ui/lib/theme-chalk/index.css'
+],
+
 
   /*
   ** Plugins to load before mounting the App
   */
-  plugins: [
-  ],
+  plugins:['~/plugins/element-ui'],
 
   /*
   ** Nuxt.js modules

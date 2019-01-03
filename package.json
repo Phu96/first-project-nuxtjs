@@ -5,7 +5,8 @@
     "lerna": "^3.8.4"
   },
   "scripts": {
-	"start": "concurrently \"cd src/server && yarn start\" \"cd src/client && yarn dev\"", 
+	"dev:client": "cd src/client && yarn dev", 
+	"start:server": "cd src/server && yarn start",
 	"dev:client": "cd src/client && yarn dev",
 	"start:client": "cd src/client && yarn start",
 	"build:client": "cd src/client && yarn build",
