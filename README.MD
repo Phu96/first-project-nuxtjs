@@ -9,13 +9,13 @@ Run the following command to install all dependencies needed for development.
 npx lerna bootstrap
 ```
 
-#### 2 Start server and client simultaneously
-i'm using "concurrently" package for run multipe command. Run the following command to install "concurrently"
+#### 2 Start server and client
+start client
 ```
-npm i -g concurrently
+yarn dev:client
 ```
-after installed "concurrently" package, run the following command to start server and client
+start server express
 ```
-yarn start
+yarn start:server
 ```
 client starting at localhost:3000, server starting at localhost:3001
