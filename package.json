@@ -7,7 +7,6 @@
   "scripts": {
 	"dev:client": "cd src/client && yarn dev", 
 	"start:server": "cd src/server && yarn start",
-	"dev:client": "cd src/client && yarn dev",
 	"start:client": "cd src/client && yarn start",
 	"build:client": "cd src/client && yarn build",
 	"generate:client": "cd src/client && yarn generate",
