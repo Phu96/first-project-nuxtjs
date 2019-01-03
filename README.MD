@@ -18,3 +18,4 @@ after installed "concurrently" package, run the following command to start serve
 ```
 yarn start
 ```
+client starting at localhost:3000, server starting at localhost:3001
