@@ -5,7 +5,14 @@
     "lerna": "^3.8.4"
   },
   "scripts": {
-	"dev": "concurrently \"cd src/server && yarn start\" \"cd src/client && yarn dev\"" 
+	"start": "concurrently \"cd src/server && yarn start\" \"cd src/client && yarn dev\"", 
+	"dev:client": "cd src/client && yarn dev",
+	"start:client": "cd src/client && yarn start",
+	"build:client": "cd src/client && yarn build",
+	"generate:client": "cd src/client && yarn generate",
+	"lint:client": "cd src/client && yarn lint",
+	"precommit:client": "cd src/client && yarn precommit"
+	
   },
   "workspaces": [
     "packages/*",
