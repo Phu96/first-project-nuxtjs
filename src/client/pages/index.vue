@@ -3,10 +3,10 @@
     <div>
       <logo/>
       <h1 class="title">
-        {{message}}
+        {{data.message}}
       </h1>
       <h2 class="subtitle">
-        My mind-blowing Nuxt.js project
+        My majestic Nuxt.js project
       </h2>
       <div class="links">
         <a
@@ -24,25 +24,21 @@
 
 <script>
 import Logo from '~/components/Logo.vue'
-import axios from 'axios'
+import axios from'axios'
 
 export default {
   components: {
     Logo
   },
+  async asyncData({ $axios }) {
+    const data = await $axios.$get('/api')
+    return { data }
+  },
   data() {
     return {
-      message: ''
+
     }
   },
-  created() {
-    axios.get('/api').then(reponse => {
-      this.message = reponse.data.message
-    })
-    .catch(e => {
-      console.log(e)
-    })
-  }
 }
 </script>
 

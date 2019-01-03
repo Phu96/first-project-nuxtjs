@@ -1,7 +1,7 @@
 const pkg = require('./package')
 
 module.exports = {
-  mode: 'universal',
+  mode: 'spa',
 
   /*
   ** Headers of the page
@@ -39,16 +39,28 @@ module.exports = {
   ** Nuxt.js modules
   */
   modules: [
-    // Doc: https://github.com/nuxt-community/axios-module#usage
     '@nuxtjs/axios',
-    // Doc: https://bootstrap-vue.js.org/docs/
-    'bootstrap-vue/nuxt'
+    // Doc: https://github.com/nuxt-community/axios-module#usage
   ],
+  
+  /*
+	map proxy to handling request
+  */
+ proxy: {
+  '/api': {
+    target: 'http://localhost:3001/api',
+    pathRewrite: {
+      '^/api' : '/'
+      }
+    }
+},
   /*
   ** Axios module configuration
   */
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
+    baseURL: 'http://localhost:3001',
+    proxy: true
   },
 
   /*
@@ -66,9 +78,9 @@ module.exports = {
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
           exclude: /(node_modules)/,
-          options: {
-            fix: true
-          }
+		  options: {
+			  fix: true
+		  }
         })
       }
     }
