@@ -10,11 +10,11 @@ npx lerna bootstrap
 ```
 
 #### 2 Start server and client simultaneously
-i'm using concurrently package for run multipe command. Run the following command to install "concurrently"
+i'm using "concurrently" package for run multipe command. Run the following command to install "concurrently"
 ```
 npm i -g concurrently
 ```
-after installed concurrently package, run the following command to start server and client
+after installed "concurrently" package, run the following command to start server and client
 ```
 yarn start
 ```
