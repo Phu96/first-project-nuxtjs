@@ -1,6 +1,32 @@
 <template>
     <el-row>
-        
+        <el-row>
+            <el-breadcrumb separator="/">
+                <el-breadcrumb-item 
+                    v-for = "(path, index) in WorkingAt"
+                    :key = "index"
+                    >
+                    <a href="" @click.prevent="changeDir(path)">{{path}}</a>
+                </el-breadcrumb-item>
+                
+            </el-breadcrumb>
+        </el-row>
+        <el-row>
+            <el-col :span="4">
+                <el-select v-model="selectedChildDir" placeholder="Select" ref = "option">
+                    <el-option 
+                        v-for="(childDir, index) in childDirs"
+                        :key="index"
+                        :label="childDir"
+                        :value="childDir">
+                    </el-option>
+                </el-select>
+            </el-col>
+            <el-col :span="4">
+                <el-button type="primary" round @click="pickSubDir">Change Directory</el-button>
+            </el-col>
+            
+        </el-row>
         <el-row :gutter="20">
             <el-col :span="8">
                 <el-input placeholder="input file name you want to add..." v-model="input"></el-input>
@@ -28,7 +54,7 @@
 
         <el-row>
             <el-table
-                :data="list"
+                :data="listFiles"
                 stripe
                 style="width: 100%">
                 <el-table-column
@@ -78,22 +104,32 @@ export default {
         return {
             textarea: '',
             input: '',
-            list: [],
+            listFiles: [],
+            childDirs: [],
+            selectedChildDir: '',
+            WorkingAt: ['files'],
+            pathChildDir: '',
             success: true,
             message: '',
-
         }
     },
   computed: {
 
   },
   created() {
-    this.getFileList()
+    this.getList(this.selectedChildDir)
+  },
+  computed: {
+      
+  },
+  watch: {
+      
   },
   methods: {
-        getFileList() {
-            axios.get('/api/file').then(reponse => {
-                this.list = reponse.data.list
+        getList(childDir) {
+            axios.post('/api/file/get', {childDir: childDir}).then(reponse => {
+                this.listFiles = reponse.data.listFiles
+                this.childDirs = reponse.data.childDirs
                 this.success = reponse.data.success
                 this.message = reponse.data.message
             })
@@ -104,12 +140,13 @@ export default {
                 this.message = "file name should not be empty"
                 return
             }
+            const dir = this.pathChildDir
             this.loadingEffect()
-            axios.post('/api/file/create', {fileName: this.input, fileContent: this.textarea}).then(reponse => {
+            axios.post('/api/file/create', {fileName: this.input, fileContent: this.textarea, dir: dir}).then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
                 this.loading = false
-                this.getFileList()
+                this.getList(dir)
                 this.loadingEffect().close()
             })
             this.input = ''
@@ -117,14 +154,28 @@ export default {
         },
         deleteFile(index) {
             this.loadingEffect()
-            const fileName = this.list[index].name
-    
-            axios.post('/api/file/delete', {fileName: fileName}).then(reponse => {
+            const fileName = this.listFiles[index].name
+            const dir = this.pathChildDir
+            axios.post('/api/file/delete', {fileName: fileName, dir: dir}).then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
-                this.getFileList()
+                this.getList(dir)
                 this.loadingEffect().close()
             })
+        },
+        changeDir(dir) {
+            const index = this.WorkingAt.findIndex(item => {
+                return dir === item
+            })
+            this.WorkingAt.splice(index + 1, this.WorkingAt.length)
+            this.generatePathChildDir()
+            this.getList(this.pathChildDir)
+        },
+        pickSubDir(){
+            this.WorkingAt.push(this.selectedChildDir)
+            this.generatePathChildDir()
+            this.getList(this.pathChildDir)
+            this.$refs.option.value =''
         },
         loadingEffect() {
             const loading = this.loading
@@ -136,7 +187,10 @@ export default {
             }
             let loadingInstance = Loading.service(options);
             return loadingInstance
-        }
+        },
+        generatePathChildDir() {
+           this.pathChildDir = this.WorkingAt.join('/');
+      }
   }
 }
 </script>

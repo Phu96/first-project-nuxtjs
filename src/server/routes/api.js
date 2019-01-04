@@ -14,20 +14,21 @@ router.get('/', (req, res, next) => {
     })
 })
 
-router.get('/file', (req, res, next) => {
-    fileController.getListFile()
-    .then(list => {
-        console.log(list)
+router.post('/file/get', (req, res, next) => {
+    fileController.getListFile(req.body.childDir)
+    .then((list) => {
         res.send({
             success: true,
-            list: list,
+            listFiles: list.listFiles,
+            childDirs: list.childDirs,
             message: "get list file successfully"
         })
     })
     .catch(e => {
         res.send({
             success: false,
-            list: [],
+            listFile: [],
+            childDir: [],
             message: e
         })
     })
