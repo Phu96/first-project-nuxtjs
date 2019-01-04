@@ -1,6 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path')
 
+const fileController = require('../controllers/file')
+
 const LIST_FILE = path.join(__dirname, '../', 'files/list.json')
 const pathFileFolder = path.join(__dirname, '../', 'files')
 
@@ -14,50 +16,11 @@ router.get('/', (req, res, next) => {
     })
 })
 
-router.get('/file', (req, res, next) => {
-    fs.readFile(LIST_FILE, (err, data) => {
-        res.json(JSON.parse(data))
-    })
-})
+router.get('/file', fileController.getListFile)
 
-router.post('/file/create', (req, res, next) => {
-    fs.readFile(LIST_FILE, (err, data) => {
-        if (err) {
-            console.log(err);
-            return
-        }else {
-            let list = JSON.parse(data);
-            fs.appendFile(pathFileFolder + `/${req.body.fileName}.txt`, req.body.contentFile, err=> {
-                if (err) console.log(err);
-                list.push(req.body)
-                fs.writeFile(LIST_FILE, JSON.stringify(list, null, 4), err => {
-                    if(err) console.log(err)
-                    res.json(list);
-                })
-            })
-        }
-    })
-})
+router.post('/file/create', fileController.addFile)
 
 
-router.post('/file/delete', (req, res, next) => {
-    fs.readFile(LIST_FILE, (err, data) => {
-        if(err) {
-            console.log(err);
-            return
-        }else {
-            let list = JSON.parse(data);
-            fs.remove(pathFileFolder + `/${list[req.body.index].fileName}.txt`, err => {
-                if(err) console.log(err)
-                console.log('file deleted')
-                list.splice(req.body.index, 1);
-                fs.writeFile(LIST_FILE, JSON.stringify(list, null, 4), err => {
-                    if(err) console.log(err)
-                    res.json(list);
-                })
-            })
-        }
-    })
-})
+router.post('/file/delete', fileController.deleteFile)
 
 module.exports = router

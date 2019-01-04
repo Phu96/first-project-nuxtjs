@@ -14,30 +14,42 @@
                 </el-input>
             </el-col>
             <el-col :span="8">
-                <el-button type="primary" round @click="handleAddFile">ADD</el-button>
+                <el-button type="primary" round @click="AddFile">ADD</el-button>
             </el-col>
+        </el-row>
+        <el-row v-if ="!success">
+            <el-alert
+                title="error alert"
+                type="error"
+                :description="message"
+                show-icon>
+            </el-alert>
         </el-row>
 
         <el-row>
             <el-table
-                :data="listFile"
+                :data="list"
                 stripe
                 style="width: 100%">
                 <el-table-column
-                prop="date"
-                label="Created Time"
-                width="180">
+                    prop="name"
+                    label="File Name"
+                    width="180">
                 </el-table-column>
                 <el-table-column
-                prop="fileName"
-                label="File Name"
-                width="180">
+                    prop="birth"
+                    label="Created Time"
+                    width="180">
                 </el-table-column>
                 <el-table-column
-                prop="id"
-                label="ID">
-                <el-button type="primary" round @click="handleAddFile">ADD</el-button>
+                    prop="mtime"
+                    label="Modified Time">
                 </el-table-column>
+                <el-table-column
+                    prop="size"
+                    label="size(kb)"
+                    width="180">
+                    </el-table-column>
                 <el-table-column
                     fixed="right"
                     label="Operations"
@@ -53,47 +65,78 @@
                 </el-table-column>
             </el-table>
         </el-row>
-       
     </el-row>
 </template>
 <script>
 import {mapGetters, mapActions} from 'vuex'
 import uuid4 from 'uuid4'
+import axios from 'axios'
+import { Loading } from 'element-ui'
 
 export default {
-  data() {
-    return {
-        textarea: '',
-        input: '',
-        list: []
-    }
-  }, 
+    data() {
+        return {
+            textarea: '',
+            input: '',
+            list: [],
+            success: true,
+            message: '',
+
+        }
+    },
   computed: {
-      listFile() {
-          return this.$store.getters['file/listFile']
-      }
+
   },
   created() {
-      this.$store.dispatch('file/getListFile')
+    this.getFileList()
   },
   methods: {
-      handleAddFile(){
-          let infoObj = {
-              id: uuid4(),
-              date: new Date().toLocaleString(),
-              fileName: this.input,
-              contentFile: this.textarea
-          }
-          this.$store.dispatch('file/addFile', infoObj);
-          this.input = ''
-          this.textarea = ''
-      },
-      deleteFile(index) {
-          let payload = {
-              index: index
-          }
-          this.$store.dispatch('file/deleteFile', payload);
-      }
+        getFileList() {
+            axios.get('/api/file').then(reponse => {
+                this.list = reponse.data.list
+                this.success = reponse.data.success
+                this.message = reponse.data.message
+            })
+        },
+        AddFile(){
+            if(!this.input) {
+                this.success = false,
+                this.message = "file name should not be empty"
+                return
+            }
+            this.loadingEffect()
+            axios.post('/api/file/create', {fileName: this.input, fileContent: this.textarea}).then(reponse => {
+                this.success = reponse.data.success
+                this.message = reponse.data.message
+                this.loading = false
+                this.getFileList()
+                this.loadingEffect().close()
+            })
+            this.input = ''
+            this.textarea = ''
+        },
+        deleteFile(index) {
+            this.loadingEffect()
+            const fileName = this.list[index].name
+            this.loading = true
+            axios.post('/api/file/delete', {name: fileName}).then(reponse => {
+                this.success = reponse.data.success
+                this.message = reponse.data.message
+                this.getFileList()
+                this.loadingEffect().close()
+            })
+        },
+        loadingEffect() {
+            const loading = this.loading
+            const options = {
+                lock: loading,
+                text: 'Loading',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            }
+            let loadingInstance = Loading.service(options);
+            return loadingInstance
+        }
   }
 }
 </script>

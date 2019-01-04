@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const state = () => ({
-    listFiles: []
+    objFile: {}
 })
 
 export const mutations = {
@@ -31,6 +31,6 @@ export const actions = {
 
 
 export const getters = {
-    listFile: state => state.listFiles,
-    totalFile: state => state.listFiles.length
+    listFile: state => state.objFile,
+    totalFile: state => state.objFile.list.length
 }
