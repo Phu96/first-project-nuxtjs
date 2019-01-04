@@ -118,8 +118,8 @@ export default {
         deleteFile(index) {
             this.loadingEffect()
             const fileName = this.list[index].name
-            this.loading = true
-            axios.post('/api/file/delete', {name: fileName}).then(reponse => {
+    
+            axios.post('/api/file/delete', {fileName: fileName}).then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
                 this.getFileList()

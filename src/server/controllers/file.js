@@ -8,23 +8,24 @@ const pathFileFolder = path.join(__dirname, '../', 'files')
 exports.getListFile = () => {
     return new Promise((resolve, reject)=> {
         fs.readdir(pathFileFolder).then(listfile => {
+            let info = []
             if(listfile) {
-                let info = listfile.map(file => fs.stat(pathFileFolder + `/${file}`))
-                Promise.all(info)
-                .then(responses => {
-                    let listInfoFile = responses.map(infoF => {
-                        return {
-                            birth: new Date(infoF.birthtime).toLocaleString(),
-                            size: infoF.size,
-                            mtime: new Date(infoF.mtime).toLocaleString()
-                        }
-                    })
-                    listfile.map((name, index) => {
-                        listInfoFile[index].name = name
-                    })
-                    resolve(listInfoFile)
-                })
+                info = listfile.map(file => fs.stat(pathFileFolder + `/${file}`))
             }
+            return Promise.all(info)
+        .then(responses => {
+            let listInfoFile = responses.map(infoF => {
+                return {
+                    birth: new Date(infoF.birthtime).toLocaleString(),
+                    size: infoF.size,
+                    mtime: new Date(infoF.mtime).toLocaleString()
+                }
+            })
+            listfile.map((name, index) => {
+                listInfoFile[index].name = name
+            })
+            resolve(listInfoFile)
+            })
         })
         .catch(e => {
             reject(e)
@@ -35,7 +36,7 @@ exports.getListFile = () => {
 
 exports.addFile = ({fileName, fileContent}) => {
     return new Promise((resolve, reject) => {
-        fs.appendFile(pathFileFolder + `/${fileName}.txt`, fileContent).then(() => {
+        fs.appendFile(`${pathFileFolder}/${fileName}.txt`, fileContent).then(() => {
             resolve()
         })
         .catch(e => {
@@ -45,9 +46,9 @@ exports.addFile = ({fileName, fileContent}) => {
 }
 
 
-exports.deleteFile = ({name}) => {
+exports.deleteFile = ({fileName}) => {
     return new Promise((resolve, reject) => {
-        fs.remove(pathFileFolder + `/${name}`).then(() => {
+        fs.remove(`${pathFileFolder}/${fileName}`).then(() => {
             resolve()
         })
         .catch(e => {
