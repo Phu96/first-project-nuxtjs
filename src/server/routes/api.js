@@ -27,9 +27,9 @@ router.post('/file/create', (req, res, next) => {
             return
         }else {
             let list = JSON.parse(data);
-            list.push(req.body)
             fs.appendFile(pathFileFolder + `/${req.body.fileName}.txt`, req.body.contentFile, err=> {
                 if (err) console.log(err);
+                list.push(req.body)
                 fs.writeFile(LIST_FILE, JSON.stringify(list, null, 4), err => {
                     if(err) console.log(err)
                     res.json(list);
