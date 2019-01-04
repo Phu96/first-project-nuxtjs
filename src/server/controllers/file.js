@@ -5,66 +5,53 @@ const pathFileFolder = path.join(__dirname, '../', 'files')
 
 
 
-exports.getListFile = (req, res, next) => {
-    fs.readdir(pathFileFolder).then(listfile => {
-        if(listfile) {
-            let info = listfile.map(file => fs.stat(pathFileFolder + `/${file}`))
-            Promise.all(info)
-            .then(responses => {
-                let listInfoFile = responses.map(infoF => {
-                    return {
-                        birth: new Date(infoF.birthtime).toLocaleString(),
-                        size: infoF.size,
-                        mtime: new Date(infoF.mtime).toLocaleString()
-                    }
+exports.getListFile = () => {
+    return new Promise((resolve, reject)=> {
+        fs.readdir(pathFileFolder).then(listfile => {
+            if(listfile) {
+                let info = listfile.map(file => fs.stat(pathFileFolder + `/${file}`))
+                Promise.all(info)
+                .then(responses => {
+                    let listInfoFile = responses.map(infoF => {
+                        return {
+                            birth: new Date(infoF.birthtime).toLocaleString(),
+                            size: infoF.size,
+                            mtime: new Date(infoF.mtime).toLocaleString()
+                        }
+                    })
+                    listfile.map((name, index) => {
+                        listInfoFile[index].name = name
+                    })
+                    resolve(listInfoFile)
                 })
-                listfile.map((name, index) => {
-                    listInfoFile[index].name = name
-                })
-                res.send({
-                    success: true,
-                    list: listInfoFile,
-                    message: ''
-                })
-            })
-        }
-    })
-    .catch(e => {
-        res.send({
-            success: false,
-            list: [],
-            message: e
+            }
+        })
+        .catch(e => {
+            reject(e)
         })
     })
+    
 }
 
-exports.addFile = (req, res, next) => {
-    fs.appendFile(pathFileFolder + `/${req.body.fileName}.txt`, req.body.fileContent).then(() => {
-        res.send({
-            success: true,
-            message: "file created"
+exports.addFile = ({fileName, fileContent}) => {
+    return new Promise((resolve, reject) => {
+        fs.appendFile(pathFileFolder + `/${fileName}.txt`, fileContent).then(() => {
+            resolve()
         })
-    })
-    .catch(e => {
-        res.send({
-            success: false,
-            message: e
+        .catch(e => {
+            reject(e)
         })
     })
 }
 
 
-exports.deleteFile = (req, res, next) => {
-    fs.remove(pathFileFolder + `/${req.body.name}`).then(() => {
-        res.send({
-            success: true,
-            message: "file created"
+exports.deleteFile = ({name}) => {
+    return new Promise((resolve, reject) => {
+        fs.remove(pathFileFolder + `/${name}`).then(() => {
+            resolve()
         })
-    })
-    .catch(e => {
-        res.send({
-            success: false,
-            message: e
+        .catch(e => {
+            reject(e)
         })
     })
 }
