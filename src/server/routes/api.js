@@ -16,11 +16,11 @@ router.get('/', (req, res, next) => {
 
 router.post('/file/get', (req, res, next) => {
     fileController.getList(req.body.childDir)
-    .then((list) => {
+    .then((obj) => {
         res.send({
             success: true,
-            listF: list.infoF,
-            childDirs: list.infoDirs,
+            treeDir: obj.treeDir,
+            childDirs: obj.childDirs,
             message: "get list file successfully"
         })
     })

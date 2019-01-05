@@ -9,30 +9,11 @@ const isDirectory = (path) => {
     return fs.lstatSync(path).isDirectory()
 }
 
-const getDirectoriesAndFiles = (pathDir) => {
-    return new Promise((resolve, reject) => {
-        fs.readdir(pathDir).then(list => {
-            let infoDirs = []
-            let Dirs = list.filter(item => {
-                    return isDirectory(pathDir + '/' + item)
-            })
-            infoDirs = Dirs.map(dir => fs.statSync(`${pathDir}/${dir}`)).map(infoD => {
-                return {
-                    birth: new Date(infoD.birthtime).toLocaleString(),
-                    size: infoD.size,
-                    mtime: new Date(infoD.mtime).toLocaleString()
-                }
-            })
-            Dirs.map((dir, index) => {
-                infoDirs[index].name = dir
-            })
-            let infoF = getFiles(pathDir, list)
-            resolve({infoDirs, infoF})
-        })
-        .catch(e => {
-            reject(e)
-        })
+const getDirectories = (pathDir) => {
+    let Dirs = fs.readdirSync(pathDir).filter(item => {
+        return isDirectory(pathDir + '/' + item)
     })
+    return Dirs
 }
 
 const getFiles = (path, list) => {
@@ -55,17 +36,38 @@ const getFiles = (path, list) => {
 }
 
 
+function dirTree(filename) {
+    var stats = fs.lstatSync(filename),
+        info = {
+            path: filename,
+            name: path.basename(filename)
+        };
+
+    if (stats.isDirectory()) {
+        info.type = "folder";
+        info.children = fs.readdirSync(filename).map(function(child) {
+            return dirTree(filename + '/' + child);
+        });
+    } else {
+        // Assuming it's a file. In real life it could be a symlink or
+        // something else!
+        info.type = "file";
+    }
+
+    return info;
+}
+
 
 exports.getList = (dir) => {
     const pathDir = (dir)? rootDir + '/' + dir : rootDir + 'files'
-    return new Promise((resolve, reject)=> {
-        getDirectoriesAndFiles(pathDir)
-        .then(obj => {
-            resolve(obj)
+    return new Promise((resolve, reject) => {
+        fs.readdir(pathDir).then(() => {
+            const treeDir = [dirTree(rootDir + 'files')]
+            const childDirs = getDirectories(pathDir)
+            resolve({treeDir, childDirs})
         })
-        .catch(e => {
-            reject(e)
-        })
+        .catch(e => reject(e))
+        
     })
 }
 

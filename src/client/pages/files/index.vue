@@ -1,6 +1,6 @@
 <template>
     <el-row>
-        <el-row>
+        <el-row type = "flex" class="row-bg working-dir" >
             <el-breadcrumb separator="/" class="breadcrumb">
                 <el-breadcrumb-item 
                     v-for = "(path, index) in WorkingAt"
@@ -22,8 +22,8 @@
                     <el-option
                         v-for="(childDir, index) in childDirs"
                         :key="index"
-                        :label="childDir.name"
-                        :value="childDir.name">
+                        :label="childDir"
+                        :value="childDir">
                     </el-option>
                 </el-select>
             </el-col>
@@ -31,47 +31,7 @@
                 <el-button type="primary" round @click="pickSubDir">Change Directory</el-button>
             </el-col>
         </el-row>
-        <h2>All SubDirectory in {{WorkingAt[WorkingAt.length - 1]}} </h2>
-        <el-row>
-            <el-table
-                :data="childDirs"
-                stripe
-                style="width: 100%">
-                <el-table-column
-                    prop="name"
-                    label="Directory Name"
-                    width="180">
-                </el-table-column>
-                <el-table-column
-                    prop="birth"
-                    label="Created Time"
-                    width="180">
-                </el-table-column>
-                <el-table-column
-                    prop="mtime"
-                    label="Modified Time">
-                </el-table-column>
-                <el-table-column
-                    prop="size"
-                    label="size(kb)"
-                    width="180">
-                    </el-table-column>
-                <el-table-column
-                    fixed="right"
-                    label="Operations"
-                    width="120">
-                    <template slot-scope="scope">
-                        <el-button
-                        @click.native.prevent="deleteDir(scope.$index)"
-                        type="text"
-                        size="small">
-                        Remove
-                        </el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-        </el-row>
-
+        
         <el-row :gutter="20">
             <el-col :span="4">
                 <el-input placeholder="File name" v-model="input"></el-input>
@@ -96,45 +56,15 @@
                 show-icon>
             </el-alert>
         </el-row>
-        <h2>All file in {{WorkingAt[WorkingAt.length - 1]}} </h2>
         <el-row>
-            <el-table
-                :data="listF"
-                stripe
-                style="width: 100%">
-                <el-table-column
-                    prop="name"
-                    label="File Name"
-                    width="180">
-                </el-table-column>
-                <el-table-column
-                    prop="birth"
-                    label="Created Time"
-                    width="180">
-                </el-table-column>
-                <el-table-column
-                    prop="mtime"
-                    label="Modified Time">
-                </el-table-column>
-                <el-table-column
-                    prop="size"
-                    label="size(kb)"
-                    width="180">
-                    </el-table-column>
-                <el-table-column
-                    fixed="right"
-                    label="Operations"
-                    width="120">
-                    <template slot-scope="scope">
-                        <el-button
-                        @click.native.prevent="deleteFile(scope.$index)"
-                        type="text"
-                        size="small">
-                        Remove
-                        </el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+            <el-col :span = "8">
+                <el-tree :data="treeDir" :props="defaultProps" @node-click="handleNodeClick"
+                    default-expand-all
+                
+                >
+                </el-tree>
+            </el-col>
+            
         </el-row>
     </el-row>
 </template>
@@ -149,13 +79,18 @@ export default {
             textarea: '',
             input: '',
             inputDir: '',
-            listF: [],
             childDirs: [],
+            treeDir: [],
+            tree: [],
             selectedChildDir: '',
             WorkingAt: ['files'],
             pathChildDir: '',
             success: true,
             message: '',
+            defaultProps: {
+                children: 'children',
+                label: 'name'
+            }
         }
     },
     created() {
@@ -164,8 +99,8 @@ export default {
     methods: {
         getList(childDir) {
             axios.post('/api/file/get', {childDir: childDir}).then(reponse => {
-                this.listF = reponse.data.listF
                 this.childDirs = reponse.data.childDirs
+                this.treeDir = reponse.data.treeDir
                 this.success = reponse.data.success
                 this.message = reponse.data.message
             })
@@ -254,6 +189,9 @@ export default {
         },
         generatePathChildDir() {
             this.pathChildDir = this.WorkingAt.join('/');
+        },
+        handleNodeClick(data) {
+            console.log(data);
         }
     }
 }
@@ -261,7 +199,16 @@ export default {
 
 
 <style>
-    .breadcrumb {
-        font-size: 20px;
+    .el-row {
+        margin-bottom: 20px
+    }
+    .working-dir {
+        height: 60px;
+        font-size: 22px;
+        margin: 0;
+        align-items: center;
+    }
+    .working-dir a {
+        font-size: 22px;
     }
 </style>
