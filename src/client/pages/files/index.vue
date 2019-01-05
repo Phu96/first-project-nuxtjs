@@ -1,41 +1,86 @@
 <template>
     <el-row>
         <el-row>
-            <el-breadcrumb separator="/">
+            <el-breadcrumb separator="/" class="breadcrumb">
                 <el-breadcrumb-item 
                     v-for = "(path, index) in WorkingAt"
                     :key = "index"
                     >
                     <a href="" @click.prevent="changeDir(path)">{{path}}</a>
                 </el-breadcrumb-item>
-                
             </el-breadcrumb>
         </el-row>
-        <el-row>
+        <el-row :gutter="20">
             <el-col :span="4">
-                <el-select v-model="selectedChildDir" placeholder="Select" ref = "option">
-                    <el-option 
+                <el-input placeholder="Subdirectory name" v-model="inputDir"></el-input>
+            </el-col>
+            <el-col :span="4">
+                <el-button type="primary" round @click="addSubDir">Create</el-button>
+            </el-col>
+            <el-col :span="4">
+                <el-select v-model="selectedChildDir" placeholder="Select subdirectory" ref = "option">
+                    <el-option
                         v-for="(childDir, index) in childDirs"
                         :key="index"
-                        :label="childDir"
-                        :value="childDir">
+                        :label="childDir.name"
+                        :value="childDir.name">
                     </el-option>
                 </el-select>
             </el-col>
             <el-col :span="4">
                 <el-button type="primary" round @click="pickSubDir">Change Directory</el-button>
             </el-col>
-            
         </el-row>
+        <h2>All SubDirectory in {{WorkingAt[WorkingAt.length - 1]}} </h2>
+        <el-row>
+            <el-table
+                :data="childDirs"
+                stripe
+                style="width: 100%">
+                <el-table-column
+                    prop="name"
+                    label="Directory Name"
+                    width="180">
+                </el-table-column>
+                <el-table-column
+                    prop="birth"
+                    label="Created Time"
+                    width="180">
+                </el-table-column>
+                <el-table-column
+                    prop="mtime"
+                    label="Modified Time">
+                </el-table-column>
+                <el-table-column
+                    prop="size"
+                    label="size(kb)"
+                    width="180">
+                    </el-table-column>
+                <el-table-column
+                    fixed="right"
+                    label="Operations"
+                    width="120">
+                    <template slot-scope="scope">
+                        <el-button
+                        @click.native.prevent="deleteDir(scope.$index)"
+                        type="text"
+                        size="small">
+                        Remove
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-row>
+
         <el-row :gutter="20">
-            <el-col :span="8">
-                <el-input placeholder="input file name you want to add..." v-model="input"></el-input>
+            <el-col :span="4">
+                <el-input placeholder="File name" v-model="input"></el-input>
             </el-col>
             <el-col :span="8">
                 <el-input
                     type="textarea"
                     :rows="2"
-                    placeholder="type content you want to save..."
+                    placeholder="Content"
                     v-model="textarea">
                 </el-input>
             </el-col>
@@ -51,10 +96,10 @@
                 show-icon>
             </el-alert>
         </el-row>
-
+        <h2>All file in {{WorkingAt[WorkingAt.length - 1]}} </h2>
         <el-row>
             <el-table
-                :data="listFiles"
+                :data="listF"
                 stripe
                 style="width: 100%">
                 <el-table-column
@@ -95,7 +140,6 @@
 </template>
 <script>
 import {mapGetters, mapActions} from 'vuex'
-import uuid4 from 'uuid4'
 import axios from 'axios'
 import { Loading } from 'element-ui'
 
@@ -104,7 +148,8 @@ export default {
         return {
             textarea: '',
             input: '',
-            listFiles: [],
+            inputDir: '',
+            listF: [],
             childDirs: [],
             selectedChildDir: '',
             WorkingAt: ['files'],
@@ -113,22 +158,13 @@ export default {
             message: '',
         }
     },
-  computed: {
-
-  },
-  created() {
+    created() {
     this.getList(this.selectedChildDir)
-  },
-  computed: {
-      
-  },
-  watch: {
-      
-  },
-  methods: {
+    },
+    methods: {
         getList(childDir) {
             axios.post('/api/file/get', {childDir: childDir}).then(reponse => {
-                this.listFiles = reponse.data.listFiles
+                this.listF = reponse.data.listF
                 this.childDirs = reponse.data.childDirs
                 this.success = reponse.data.success
                 this.message = reponse.data.message
@@ -154,9 +190,37 @@ export default {
         },
         deleteFile(index) {
             this.loadingEffect()
-            const fileName = this.listFiles[index].name
+            const fileName = this.listF[index].name
             const dir = this.pathChildDir
             axios.post('/api/file/delete', {fileName: fileName, dir: dir}).then(reponse => {
+                this.success = reponse.data.success
+                this.message = reponse.data.message
+                this.getList(dir)
+                this.loadingEffect().close()
+            })
+        },
+        addSubDir(){
+            if(!this.inputDir) {
+                this.success = false,
+                this.message = "Directory name should not be empty"
+                return
+            }
+            const dir = this.pathChildDir
+            const name = this.inputDir
+            axios.post('/api/file/createDir', {name: name, dir: dir})
+            .then(reponse => {
+                this.success = reponse.data.success
+                this.message = reponse.data.message
+                this.getList(dir)
+                this.loadingEffect().close()
+            })
+            this.inputDir = ''
+        },
+        deleteDir(index) {
+            this.loadingEffect()
+            const dirName = this.childDirs[index].name
+            const dir = this.pathChildDir
+            axios.post('/api/file/deleteDir', {dirName: dirName, dir: dir}).then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
                 this.getList(dir)
@@ -175,7 +239,7 @@ export default {
             this.WorkingAt.push(this.selectedChildDir)
             this.generatePathChildDir()
             this.getList(this.pathChildDir)
-            this.$refs.option.value =''
+            this.selectedChildDir = ''
         },
         loadingEffect() {
             const loading = this.loading
@@ -189,10 +253,15 @@ export default {
             return loadingInstance
         },
         generatePathChildDir() {
-           this.pathChildDir = this.WorkingAt.join('/');
-      }
-  }
+            this.pathChildDir = this.WorkingAt.join('/');
+        }
+    }
 }
 </script>
 
 
+<style>
+    .breadcrumb {
+        font-size: 20px;
+    }
+</style>
