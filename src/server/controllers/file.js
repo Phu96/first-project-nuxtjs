@@ -4,39 +4,43 @@ const path = require('path')
 
 const rootDir = path.join(__dirname, '../');
 
-//check whether file is directory
-const isDirectory = (path) => {
-    return fs.lstatSync(path).isDirectory()
+
+
+exports.getChildDir = ({dir}) => {
+    const pathDir = (dir)? rootDir + '/' + dir : rootDir
+    console.log(pathDir)
+    return new Promise((resolve, reject) => {
+        fs.readdir(pathDir).then(child => {
+            const childDirs = child.filter(item => {
+                return isDirectory(pathDir + '/' + item)
+            })
+            resolve(childDirs) 
+        })
+        .catch(e => reject(e))  
+    })
 }
 
-const getDirectories = (pathDir) => {
-    let Dirs = fs.readdirSync(pathDir).filter(item => {
-        return isDirectory(pathDir + '/' + item)
-    })
-    return Dirs
-}
+// const getFiles = (path, list) => {
 
-const getFiles = (path, list) => {
-
-    let infoF = []
-    let files = list.filter(item => {
-        return !isDirectory(path + '/' + item)
-    })
-    infoF = files.map(file => fs.statSync(`${path}/${file}`)).map(infoF => {
-        return {
-            birth: new Date(infoF.birthtime).toLocaleString(),
-            size: infoF.size,
-            mtime: new Date(infoF.mtime).toLocaleString()
-        }
-    })
-    files.map((name, index) => {
-        infoF[index].name = name
-    })
-    return infoF
-}
+//     let infoF = []
+//     let files = list.filter(item => {
+//         return !isDirectory(path + '/' + item)
+//     })
+//     infoF = files.map(file => fs.statSync(`${path}/${file}`)).map(infoF => {
+//         return {
+//             birth: new Date(infoF.birthtime).toLocaleString(),
+//             size: infoF.size,
+//             mtime: new Date(infoF.mtime).toLocaleString()
+//         }
+//     })
+//     files.map((name, index) => {
+//         infoF[index].name = name
+//     })
+//     return infoF
+// }
 
 
-const dirTree = pathDir => {
+const getSingleDirTree = pathDir => {
     let stats = fs.lstatSync(pathDir),
         info = {
             path: pathDir,
@@ -45,7 +49,7 @@ const dirTree = pathDir => {
     if (stats.isDirectory()) {
         info.type = "folder";
         info.children = fs.readdirSync(pathDir).map(function(child) {
-            return dirTree(pathDir + '/' + child);
+            return getSingleDirTree(pathDir + '/' + child);
         });
     } else {
         info.type = "file";
@@ -54,31 +58,46 @@ const dirTree = pathDir => {
     return info;
 }
 // sort dirTree according to order (folder => file)
-const sortDirTree = dirTree => {
 
+const sortDirTree = dirTree => {
 	dirTree.children.sort((a, b) => b.type.length - a.type.length).map(child => {
 		if(child.children) return sortDirTree(child)
     })
-	return dirTree
+    return dirTree
 }
 
-exports.getList = (dir) => {
-    const pathDir = (dir)? rootDir + '/' + dir : rootDir + 'files'
+
+exports.getAllDirTree = () => {
     return new Promise((resolve, reject) => {
-        fs.readdir(pathDir).then(() => {
-            const childDirs = getDirectories(pathDir)
-            let treeDir = dirTree(rootDir + 'files')
-            treeDir = [sortDirTree(treeDir)]
-            resolve({treeDir, childDirs})
+        fs.readdir(rootDir).then(dir => {
+            const dirTree = dir.map(file => {
+                let stats = fs.lstatSync(rootDir + '/' + file)
+                if(stats.isDirectory()) {
+                    return getSingleDirTree(rootDir + '/' + file)
+                } else {
+                    let info = {
+                        path: rootDir + '/' + file,
+                        name: path.basename(rootDir + '/' + file),
+                        type: "file"
+                    }
+                    return info
+                }
+            }).sort((a, b) => b.type.length - a.type.length).map(child => {
+                if(child.type === "folder") {
+                    return sortDirTree(child)
+                }else return child
+            })
+            resolve(dirTree)
         })
         .catch(e => reject(e))
     })
 }
 
-exports.addFile = ({fileName, fileContent, dir}) => {
-    const pathDir = (dir)? rootDir + '/' + dir : rootDir + 'files'
+
+exports.createFile = ({fileName, fileContent, dir}) => {
+    console.log('aaa');
     return new Promise((resolve, reject) => {
-        fs.appendFile(`${pathDir}/${fileName}.txt`, fileContent).then(() => {
+        fs.appendFile(`${dir}/${fileName}.txt`, fileContent).then(() => {
             resolve()
         })
         .catch(e => {
@@ -89,7 +108,7 @@ exports.addFile = ({fileName, fileContent, dir}) => {
 
 
 exports.deleteFile = ({fileName, dir}) => {
-    const pathDir = (dir)? rootDir + '/' + dir : rootDir + 'files'
+    const pathDir = (dir)? rootDir + '/' + dir : rootDir
     return new Promise((resolve, reject) => {
         fs.remove(`${pathDir}/${fileName}`).then(() => {
             resolve()
@@ -101,16 +120,17 @@ exports.deleteFile = ({fileName, dir}) => {
 }
 
 
-exports.addSubDir = ({name, dir}) => {
-    const pathDir = (dir)? rootDir + '/' + dir : rootDir + 'files'
+exports.createDir = ({name, path}) => {
     return new Promise((resolve, reject) => {
-        fs.stat(`${pathDir}/${name}`)
+        fs.stat(path + '/' + name)
         .then(() => {
             reject('Directory already exists, please choose a different name')
         })
         .catch(e => {
-            fs.ensureDir(`${pathDir}/${name}`).then(() => {
+            fs.ensureDir(path + '/' + name).then(() => {
+                console.log('aaa')
                 resolve()
+
             })
             .catch(e => {
                 reject(e)
@@ -121,7 +141,7 @@ exports.addSubDir = ({name, dir}) => {
 
 
 exports.deleteDir = ({dirName, dir}) => {
-    const pathDir = (dir)? rootDir + '/' + dir : rootDir + 'files'
+    const pathDir = (dir)? rootDir + '/' + dir : rootDir
     return new Promise((resolve, reject) => {
         fs.remove(`${pathDir}/${dirName}`).then(() => {
             resolve()

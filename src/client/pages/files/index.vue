@@ -1,16 +1,6 @@
 <template>
     <el-row>
-        <el-row type = "flex" class="row-bg working-dir" >
-            <el-breadcrumb separator="/" class="breadcrumb">
-                <el-breadcrumb-item 
-                    v-for = "(path, index) in WorkingAt"
-                    :key = "index"
-                    >
-                    <a href="" @click.prevent="changeDir(path)">{{path}}</a>
-                </el-breadcrumb-item>
-            </el-breadcrumb>
-        </el-row>
-        <el-row :gutter="10">
+        <!-- <el-row :gutter="10">
             <el-col :span="4">
                 <el-input placeholder="Subdirectory name" v-model="inputDir"></el-input>
             </el-col>
@@ -30,33 +20,56 @@
             <el-col :span="4">
                 <el-button type="primary" round @click="pickSubDir">Change Directory</el-button>
             </el-col>
-        </el-row>
-        <el-row :gutter="20">
-            <el-col :span="4">
-                <el-input placeholder="File name" v-model="input"></el-input>
+        </el-row> -->
+        <el-row>
+            <el-col :span = "8">
+                <el-tree 
+                    :data="dirTree" 
+                    :props="defaultProps"
+                    highlight-current
+                    :expand-on-click-node="false">
+                    >
+                    
+                >
+                <span class="custom-tree-node" slot-scope="{ node, data }">
+                    <div>
+                        <span v-if = "data.type === 'folder'">
+                            <font-awesome-icon icon="folder"/>
+                        </span>
+                        <span v-if="data.type === 'file'" >
+                            <font-awesome-icon icon="file-alt"/>
+                        </span>
+                        <span>{{ node.label }}</span>
+                    </div>
+                    <span class="group-button-folder" v-if = "data.type === 'folder' ">
+                        <el-button type="text" @click="() => openDialogCreateDir(data)"  ><font-awesome-icon icon="folder-plus"/></el-button>
+                        <el-button type="text" @click="() => openDialogCreateFile(data)"  ><font-awesome-icon icon="plus"/></el-button>
+                    </span>
+                </span>   
+                </el-tree>
             </el-col>
-            <el-col :span="8">
-                <el-input
+            <el-dialog
+                title="Create Folder"
+                :visible.sync="openDialog"
+                width="30%"
+                >
+                <el-alert v-if="!success"
+                    :title="message"
+                    type="error">
+                </el-alert>
+                <el-input placeholder="Folder Name" v-model="input"></el-input>
+                <el-input v-if="isCreateFileClicked"
                     type="textarea"
                     :rows="2"
                     placeholder="Content"
                     v-model="textarea">
                 </el-input>
-            </el-col>
-            <el-col :span="8">
-                <el-button type="primary" round @click="AddFile">ADD</el-button>
-            </el-col>
-        </el-row>
-        <el-row>
-            <el-col :span = "8">
-                <el-tree 
-                    :data="treeDir" 
-                    :props="defaultProps"
-                    default-expand-all
-                    :render-content="renderContent"
-                >
-                </el-tree>
-            </el-col>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="openDialog = false">Cancel</el-button>
+                    <el-button v-if="isCreateFolderClicked" type="primary" @click="createDir">CreateDir</el-button>
+                    <el-button v-if="isCreateFileClicked" type="primary" @click="createFile">CreateFile</el-button> 
+                </span>
+            </el-dialog>
         </el-row>
     </el-row>
 </template>
@@ -70,15 +83,14 @@ export default {
         return {
             textarea: '',
             input: '',
-            inputDir: '',
-            childDirs: [],
-            treeDir: [],
-            tree: [],
+            openDialog: false,
+            dirTree: [],
             selectedChildDir: '',
-            WorkingAt: ['files'],
-            pathChildDir: '',
+            pathDirWhenClicked: '',
             success: true,
             message: '',
+            isCreateFolderClicked: false,
+            isCreateFileClicked: false,
             defaultProps: {
                 children: 'children',
                 label: 'name'
@@ -86,35 +98,38 @@ export default {
         }
     },
     created() {
-    this.getList(this.selectedChildDir)
-    },
-    watch: {
-    
+        this.getDirTree()
     },
     methods: {
-        getList(childDir) {
-            axios.post('/api/file/get', {childDir: childDir}).then(reponse => {
-                this.childDirs = reponse.data.childDirs
-                this.treeDir = reponse.data.treeDir
+        getDirTree() {
+            axios.get('/api/file/getDirTree').then(reponse => {
+                this.dirTree = reponse.data.dirTree
                 this.success = reponse.data.success
                 this.message = reponse.data.message
             })
         },
-        AddFile(){
+
+        createFile(){
             if(!this.input) {
                 this.success = false,
                 this.message = "file name should not be empty"
                 this.checkError(this.success, this.message)
                 return
             }
-            const dir = this.pathChildDir
+            const dir = this.pathDirWhenClicked
+            const fileName = this.input
+            const fileContent = this.textarea
             this.loadingEffect()
-            axios.post('/api/file/create', {fileName: this.input, fileContent: this.textarea, dir: dir}).then(reponse => {
+            axios.post('/api/file/create', {fileName, fileContent, dir}).then(reponse => {
+                console.log('aaa')
+                this.loadingEffect().close()
                 this.success = reponse.data.success
                 this.message = reponse.data.message
-                this.checkError(this.success, this.message)
-                this.getList(dir)
-                this.loadingEffect().close()
+                if(this.success) {
+                    this.openDialog = false
+                    this.getDirTree()
+                }
+                
             })
             this.input = ''
             this.textarea = ''
@@ -127,28 +142,38 @@ export default {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
                 this.checkError(this.success, this.message)
-                this.getList(dir)
+                this.getDirTree()
                 this.loadingEffect().close()
             })
         },
-        addSubDir(){
-            if(!this.inputDir) {
-                this.success = false,
-                this.message = "Directory name should not be empty"
-                this.checkError(this.success, this.message)
-                return
-            }
-            const dir = this.pathChildDir
-            const name = this.inputDir
-            axios.post('/api/file/createDir', {name: name, dir: dir})
+
+        openDialogCreateDir(data) {
+            this.openDialog = true
+            this.isCreateFolderClicked = true
+            this.isCreateFileClicked = false
+            this.pathDirWhenClicked = data.path
+        },
+
+        openDialogCreateFile(data) {
+            this.openDialog = true
+            this.isCreateFileClicked = true
+            this.isCreateFolderClicked = false
+            this.pathDirWhenClicked = data.path
+        },
+        createDir(){
+            const path = this.pathDirWhenClicked
+            const name = this.input
+            axios.post('/api/file/createDir', {name, path})
             .then(reponse => {
+                this.loadingEffect().close()
                 this.success = reponse.data.success
                 this.message = reponse.data.message
-                this.checkError(this.success, this.message)
-                this.getList(dir)
-                this.loadingEffect().close()
+                if(this.success) {
+                    this.openDialog = false
+                    this.getDirTree()
+                }
             })
-            this.inputDir = ''
+            this.input = ''
         },
         deleteDir(index) {
             this.loadingEffect()
@@ -158,24 +183,11 @@ export default {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
                 this.checkError(this.success, this.message)
-                this.getList(dir)
+                this.getDirTree()
                 this.loadingEffect().close()
             })
         },
-        changeDir(dir) {
-            const index = this.WorkingAt.findIndex(item => {
-                return dir === item
-            })
-            this.WorkingAt.splice(index + 1, this.WorkingAt.length)
-            this.generatePathChildDir()
-            this.getList(this.pathChildDir)
-        },
-        pickSubDir(){
-            this.WorkingAt.push(this.selectedChildDir)
-            this.generatePathChildDir()
-            this.getList(this.pathChildDir)
-            this.selectedChildDir = ''
-        },
+
         loadingEffect() {
             const loading = this.loading
             const options = {
@@ -187,32 +199,9 @@ export default {
             let loadingInstance = Loading.service(options);
             return loadingInstance
         },
-        generatePathChildDir() {
-            this.pathChildDir = this.WorkingAt.join('/');
-        },
         checkError(succ, mess) {
             if(!succ) return this.$message.error(mess);
         },
-        renderContent(h, { node, data, store }) {
-            console.log(data.type)
-            if(data.type ==='folder') {
-                return (
-                    <span class="custom-tree-node">
-                        <span style = "margin-right:3px; font-size: 26px">
-                        <font-awesome-icon icon="folder"/>
-                        </span>
-                        <span>{node.label}</span>
-                    </span>);
-            }else {
-                return (
-                    <span class="custom-tree-node">
-                        <span style = "margin-right: 3px; font-size: 20px">
-                        <font-awesome-icon icon="file-alt"/>
-                        </span>
-                        <span>{node.label}</span>
-                    </span>);
-            }
-        }
     }
 }
 </script>
@@ -220,13 +209,17 @@ export default {
     .el-row {
         margin-bottom: 20px
     }
-    .working-dir {
-        height: 60px;
-        font-size: 22px;
-        margin: 0;
-        align-items: center;
+    .custom-tree-node {
+        font-size: 36px;
+        flex: 1;
+        display: flex;
+        justify-content: space-between;
     }
-    .working-dir a {
-        font-size: 22px;
+    .el-tree-node__content{
+        height: 50px;
+    }
+
+    .el-button+.el-button {
+        margin: 0;
     }
 </style>

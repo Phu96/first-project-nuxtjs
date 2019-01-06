@@ -14,28 +14,43 @@ router.get('/', (req, res, next) => {
     })
 })
 
-router.post('/file/get', (req, res, next) => {
-    fileController.getList(req.body.childDir)
-    .then((obj) => {
+router.get('/file/getDirTree', (req, res, next) => {
+    fileController.getAllDirTree()
+    .then((dirTree) => {
         res.send({
             success: true,
-            treeDir: obj.treeDir,
-            childDirs: obj.childDirs,
-            message: "get list file successfully"
+            dirTree: dirTree,
+            message: "get directory tree successfully"
         })
     })
     .catch(e => {
         res.send({
             success: false,
-            listF:[],
-            childDirs: [],
+            dirTree:[],
             message: e
         })
     })
 })
 
+router.post('/file/getChildDir', (req, res, next) => {
+    fileController.getChildDir(req.body)
+    .then(childDirs => {
+        res.send({
+            success: true,
+            childDirs: childDirs,
+            message: "get directory tree successfully"
+        })
+    }).catch(e => {
+        res.send({
+            success: true,
+            childDirs: [],
+            message: "get directory tree successfully"
+        })
+    })
+})
+
 router.post('/file/create', (req, res, next) => {
-    fileController.addFile(req.body)
+    fileController.createFile(req.body)
     .then(() => {
         res.send({
             success: true,
@@ -51,7 +66,7 @@ router.post('/file/create', (req, res, next) => {
 })
 
 router.post('/file/createDir', (req, res, next) => {
-    fileController.addSubDir(req.body)
+    fileController.createDir(req.body)
     .then(() => {
         res.send({
             success: true,
@@ -59,6 +74,7 @@ router.post('/file/createDir', (req, res, next) => {
         })
     })
     .catch(e => {
+        console.log(e)
         res.send({
             success: false,
             message: e

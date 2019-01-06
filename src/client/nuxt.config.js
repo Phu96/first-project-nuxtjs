@@ -50,12 +50,7 @@ module.exports = {
 	map proxy to handling request
   */
  proxy: {
-  '/api': {
-    target: 'http://localhost:3001/api',
-    pathRewrite: {
-      '^/api' : '/'
-      }
-    }
+
 },
   /*
   ** Axios module configuration
