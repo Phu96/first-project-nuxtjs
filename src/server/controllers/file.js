@@ -36,38 +36,42 @@ const getFiles = (path, list) => {
 }
 
 
-function dirTree(filename) {
-    var stats = fs.lstatSync(filename),
+const dirTree = pathDir => {
+    let stats = fs.lstatSync(pathDir),
         info = {
-            path: filename,
-            name: path.basename(filename)
+            path: pathDir,
+            name: path.basename(pathDir)
         };
-
     if (stats.isDirectory()) {
         info.type = "folder";
-        info.children = fs.readdirSync(filename).map(function(child) {
-            return dirTree(filename + '/' + child);
+        info.children = fs.readdirSync(pathDir).map(function(child) {
+            return dirTree(pathDir + '/' + child);
         });
     } else {
-        // Assuming it's a file. In real life it could be a symlink or
-        // something else!
         info.type = "file";
     }
 
     return info;
 }
+// sort dirTree according to order (folder => file)
+const sortDirTree = dirTree => {
 
+	dirTree.children.sort((a, b) => b.type.length - a.type.length).map(child => {
+		if(child.children) return sortDirTree(child)
+    })
+	return dirTree
+}
 
 exports.getList = (dir) => {
     const pathDir = (dir)? rootDir + '/' + dir : rootDir + 'files'
     return new Promise((resolve, reject) => {
         fs.readdir(pathDir).then(() => {
-            const treeDir = [dirTree(rootDir + 'files')]
             const childDirs = getDirectories(pathDir)
+            let treeDir = dirTree(rootDir + 'files')
+            treeDir = [sortDirTree(treeDir)]
             resolve({treeDir, childDirs})
         })
         .catch(e => reject(e))
-        
     })
 }
 

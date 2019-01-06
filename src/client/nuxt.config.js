@@ -28,14 +28,15 @@ module.exports = {
   ** Global CSS
   */
  css: [
-  '@/assets/element-ui/lib/theme-chalk/index.css'
+  '@/assets/element-ui/lib/theme-chalk/index.css',
+  '@/assets/@fortawesome/fontawesome-svg-core/styles.css'
 ],
 
 
   /*
   ** Plugins to load before mounting the App
   */
-  plugins:['~/plugins/element-ui'],
+  plugins:['~/plugins/element-ui', '~/plugins/fontawesome' ],
 
   /*
   ** Nuxt.js modules

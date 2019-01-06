@@ -10,7 +10,7 @@
                 </el-breadcrumb-item>
             </el-breadcrumb>
         </el-row>
-        <el-row :gutter="20">
+        <el-row :gutter="10">
             <el-col :span="4">
                 <el-input placeholder="Subdirectory name" v-model="inputDir"></el-input>
             </el-col>
@@ -31,7 +31,6 @@
                 <el-button type="primary" round @click="pickSubDir">Change Directory</el-button>
             </el-col>
         </el-row>
-        
         <el-row :gutter="20">
             <el-col :span="4">
                 <el-input placeholder="File name" v-model="input"></el-input>
@@ -48,23 +47,16 @@
                 <el-button type="primary" round @click="AddFile">ADD</el-button>
             </el-col>
         </el-row>
-        <el-row v-if ="!success">
-            <el-alert
-                title="error alert"
-                type="error"
-                :description="message"
-                show-icon>
-            </el-alert>
-        </el-row>
         <el-row>
             <el-col :span = "8">
-                <el-tree :data="treeDir" :props="defaultProps" @node-click="handleNodeClick"
+                <el-tree 
+                    :data="treeDir" 
+                    :props="defaultProps"
                     default-expand-all
-                
+                    :render-content="renderContent"
                 >
                 </el-tree>
             </el-col>
-            
         </el-row>
     </el-row>
 </template>
@@ -96,6 +88,9 @@ export default {
     created() {
     this.getList(this.selectedChildDir)
     },
+    watch: {
+    
+    },
     methods: {
         getList(childDir) {
             axios.post('/api/file/get', {childDir: childDir}).then(reponse => {
@@ -109,6 +104,7 @@ export default {
             if(!this.input) {
                 this.success = false,
                 this.message = "file name should not be empty"
+                this.checkError(this.success, this.message)
                 return
             }
             const dir = this.pathChildDir
@@ -116,7 +112,7 @@ export default {
             axios.post('/api/file/create', {fileName: this.input, fileContent: this.textarea, dir: dir}).then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
-                this.loading = false
+                this.checkError(this.success, this.message)
                 this.getList(dir)
                 this.loadingEffect().close()
             })
@@ -130,6 +126,7 @@ export default {
             axios.post('/api/file/delete', {fileName: fileName, dir: dir}).then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
+                this.checkError(this.success, this.message)
                 this.getList(dir)
                 this.loadingEffect().close()
             })
@@ -138,6 +135,7 @@ export default {
             if(!this.inputDir) {
                 this.success = false,
                 this.message = "Directory name should not be empty"
+                this.checkError(this.success, this.message)
                 return
             }
             const dir = this.pathChildDir
@@ -146,6 +144,7 @@ export default {
             .then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
+                this.checkError(this.success, this.message)
                 this.getList(dir)
                 this.loadingEffect().close()
             })
@@ -158,6 +157,7 @@ export default {
             axios.post('/api/file/deleteDir', {dirName: dirName, dir: dir}).then(reponse => {
                 this.success = reponse.data.success
                 this.message = reponse.data.message
+                this.checkError(this.success, this.message)
                 this.getList(dir)
                 this.loadingEffect().close()
             })
@@ -190,14 +190,32 @@ export default {
         generatePathChildDir() {
             this.pathChildDir = this.WorkingAt.join('/');
         },
-        handleNodeClick(data) {
-            console.log(data);
+        checkError(succ, mess) {
+            if(!succ) return this.$message.error(mess);
+        },
+        renderContent(h, { node, data, store }) {
+            console.log(data.type)
+            if(data.type ==='folder') {
+                return (
+                    <span class="custom-tree-node">
+                        <span style = "margin-right:3px; font-size: 26px">
+                        <font-awesome-icon icon="folder"/>
+                        </span>
+                        <span>{node.label}</span>
+                    </span>);
+            }else {
+                return (
+                    <span class="custom-tree-node">
+                        <span style = "margin-right: 3px; font-size: 20px">
+                        <font-awesome-icon icon="file-alt"/>
+                        </span>
+                        <span>{node.label}</span>
+                    </span>);
+            }
         }
     }
 }
 </script>
-
-
 <style>
     .el-row {
         margin-bottom: 20px
