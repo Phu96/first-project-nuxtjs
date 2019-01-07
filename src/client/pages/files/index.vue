@@ -45,19 +45,22 @@
                         <el-button type="text" @click="() => openDialogCreateDir(data)"  ><font-awesome-icon icon="folder-plus"/></el-button>
                         <el-button type="text" @click="() => openDialogCreateFile(data)"  ><font-awesome-icon icon="plus"/></el-button>
                     </span>
-                </span>   
+                    <span class = "button-file" v-if="data.type === 'file'">
+                        <el-button type="text" @click="() => openDialogDeleteF(data)"  ><font-awesome-icon icon="trash-alt"/></el-button>
+                    </span>
+                </span>
                 </el-tree>
             </el-col>
             <el-dialog
-                title="Create Folder"
-                :visible.sync="openDialog"
+                :title="isCreateFolderClicked? 'Create Folder' : 'Create File'"
+                :visible.sync="openDialogFolder"
                 width="30%"
                 >
                 <el-alert v-if="!success"
                     :title="message"
                     type="error">
                 </el-alert>
-                <el-input placeholder="Folder Name" v-model="input"></el-input>
+                <el-input :placeholder="isCreateFolderClicked? 'Folder Name' : 'File Name'" v-model="input"></el-input>
                 <el-input v-if="isCreateFileClicked"
                     type="textarea"
                     :rows="2"
@@ -65,9 +68,24 @@
                     v-model="textarea">
                 </el-input>
                 <span slot="footer" class="dialog-footer">
-                    <el-button @click="openDialog = false">Cancel</el-button>
+                    <el-button @click="openDialogFolder = false">Cancel</el-button>
                     <el-button v-if="isCreateFolderClicked" type="primary" @click="createDir">CreateDir</el-button>
                     <el-button v-if="isCreateFileClicked" type="primary" @click="createFile">CreateFile</el-button> 
+                </span>
+            </el-dialog>
+            <el-dialog
+                title="Delete File"
+                :visible.sync="openDialogDeleteFile"
+                width="30%"
+                >
+                <el-alert v-if="!success"
+                    :title="message"
+                    type="error">
+                </el-alert>
+                <span>Are you sure you want to delete this file?</span>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="openDialogDeleteFile = false">Cancel</el-button>
+                    <el-button type="primary" @click="deleteFile">Delete</el-button> 
                 </span>
             </el-dialog>
         </el-row>
@@ -83,7 +101,8 @@ export default {
         return {
             textarea: '',
             input: '',
-            openDialog: false,
+            openDialogFolder: false,
+            openDialogDeleteFile: false,
             dirTree: [],
             selectedChildDir: '',
             pathDirWhenClicked: '',
@@ -102,10 +121,10 @@ export default {
     },
     methods: {
         getDirTree() {
-            axios.get('/api/file/getDirTree').then(reponse => {
-                this.dirTree = reponse.data.dirTree
-                this.success = reponse.data.success
-                this.message = reponse.data.message
+            this.$axios.$get('/api/file/getDirTree').then(reponse => {
+                this.dirTree = reponse.dirTree
+                this.success = reponse.success
+                this.message = reponse.message
             })
         },
 
@@ -120,54 +139,58 @@ export default {
             const fileName = this.input
             const fileContent = this.textarea
             this.loadingEffect()
-            axios.post('/api/file/create', {fileName, fileContent, dir}).then(reponse => {
-                console.log('aaa')
+            this.$axios.$post('/api/file/create', {fileName, fileContent, dir}).then(reponse => {
                 this.loadingEffect().close()
-                this.success = reponse.data.success
-                this.message = reponse.data.message
+                this.success = reponse.success
+                this.message = reponse.message
                 if(this.success) {
-                    this.openDialog = false
+                    this.openDialogFolder = false
+                    this.informSuccess(this.message)
                     this.getDirTree()
                 }
-                
             })
             this.input = ''
             this.textarea = ''
         },
-        deleteFile(index) {
+        deleteFile() {
             this.loadingEffect()
-            const fileName = this.listF[index].name
-            const dir = this.pathChildDir
-            axios.post('/api/file/delete', {fileName: fileName, dir: dir}).then(reponse => {
-                this.success = reponse.data.success
-                this.message = reponse.data.message
-                this.checkError(this.success, this.message)
-                this.getDirTree()
+            const path = this.pathDirWhenClicked
+            this.$axios.$post('/api/file/delete', {path}).then(reponse => {
                 this.loadingEffect().close()
+                this.success = reponse.success
+                this.message = reponse.message
+                if(this.success) {
+                    this.openDialogDeleteFile = false
+                    this.getDirTree()
+                }
             })
         },
 
         openDialogCreateDir(data) {
-            this.openDialog = true
+            this.openDialogFolder = true
             this.isCreateFolderClicked = true
             this.isCreateFileClicked = false
             this.pathDirWhenClicked = data.path
         },
 
         openDialogCreateFile(data) {
-            this.openDialog = true
+            this.openDialogFolder = true
             this.isCreateFileClicked = true
             this.isCreateFolderClicked = false
+            this.pathDirWhenClicked = data.path
+        },
+        openDialogDeleteF(data) {
+            this.openDialogDeleteFile = true
             this.pathDirWhenClicked = data.path
         },
         createDir(){
             const path = this.pathDirWhenClicked
             const name = this.input
-            axios.post('/api/file/createDir', {name, path})
+            this.$axios.$post('/api/file/createDir', {name, path})
             .then(reponse => {
                 this.loadingEffect().close()
-                this.success = reponse.data.success
-                this.message = reponse.data.message
+                this.success = reponse.success
+                this.message = reponse.message
                 if(this.success) {
                     this.openDialog = false
                     this.getDirTree()
@@ -179,9 +202,9 @@ export default {
             this.loadingEffect()
             const dirName = this.childDirs[index].name
             const dir = this.pathChildDir
-            axios.post('/api/file/deleteDir', {dirName: dirName, dir: dir}).then(reponse => {
-                this.success = reponse.data.success
-                this.message = reponse.data.message
+            this.$axios.$post('/api/file/deleteDir', {dirName: dirName, dir: dir}).then(reponse => {
+                this.success = reponse.success
+                this.message = reponse.message
                 this.checkError(this.success, this.message)
                 this.getDirTree()
                 this.loadingEffect().close()
@@ -202,6 +225,12 @@ export default {
         checkError(succ, mess) {
             if(!succ) return this.$message.error(mess);
         },
+        informSuccess(mess) {
+           this.$message({
+            message: mess,
+            type: 'success'
+        });
+        }
     }
 }
 </script>

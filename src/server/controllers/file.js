@@ -107,10 +107,10 @@ exports.createFile = ({fileName, fileContent, dir}) => {
 }
 
 
-exports.deleteFile = ({fileName, dir}) => {
-    const pathDir = (dir)? rootDir + '/' + dir : rootDir
+exports.deleteFile = ({path}) => {
+    console.log(path)
     return new Promise((resolve, reject) => {
-        fs.remove(`${pathDir}/${fileName}`).then(() => {
+        fs.remove(path).then(() => {
             resolve()
         })
         .catch(e => {

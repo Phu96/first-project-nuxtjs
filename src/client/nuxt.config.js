@@ -50,7 +50,7 @@ module.exports = {
 	map proxy to handling request
   */
  proxy: {
-
+  '/api/file/getDirTree': { target: 'http://localhost:3001', ws: false }
 },
   /*
   ** Axios module configuration
@@ -58,7 +58,8 @@ module.exports = {
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
     baseURL: 'http://localhost:3001',
-    proxy: true
+    proxy: false,
+    credentials: false
   },
 
   /*
