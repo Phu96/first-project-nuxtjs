@@ -21,109 +21,132 @@
                 <el-button type="primary" round @click="pickSubDir">Change Directory</el-button>
             </el-col>
         </el-row> -->
-        <el-row class="functional_file_system">
-            <el-col :span = "8">
-                <div class="button_file_system">
-                    <span><h3>Manage Server File System</h3></span>
-                    <span>
-                        <el-button type="text" @click="() => openDialogCreateDir()" :disabled= "typeFile !== 'folder'"  ><font-awesome-icon icon="folder-plus"/></el-button>
-                        <el-button type="text" @click="() => openDialogCreateFile()" :disabled= "typeFile !== 'folder'"  ><font-awesome-icon icon="plus"/></el-button>
-                        <el-button type="text" @click="() => openDialogDeleteF()" :disabled= "typeFile !== 'file'"  ><font-awesome-icon icon="trash-alt"/></el-button>
-                    </span>
-                </div>
-            </el-col>
-
-        </el-row>
-        <el-row>
-            <el-col :span = "8">
-                <el-tree 
-                    :data="dirTree" 
-                    :props="defaultProps"
-                    highlight-current
-                    @node-click="handleNodeClick"
-                    :expand-on-click-node="false">
-                    >
-                >
-                <span class="custom-tree-node" slot-scope="{ node, data }">
-                    <div>
-                        <span v-if = "data.type === 'folder'">
-                            <font-awesome-icon icon="folder"/>
+        <el-col :span = "8">
+            <el-row class="functional_file_system">
+                <el-col>
+                    <div class="button_file_system">
+                        <span><h3>Manage Server File System</h3></span>
+                        <span>
+                            <el-button type="text" @click="() => openDialogCreateDir()" :disabled= "typeFileWhenClick !== 'folder'"  ><font-awesome-icon icon="folder-plus"/></el-button>
+                            <el-button type="text" @click="() => openDialogCreateFile()" :disabled= "typeFileWhenClick !== 'folder'"  ><font-awesome-icon icon="plus"/></el-button>
+                            <el-button type="text" @click="() => openDialogDeleteF()" :disabled= "typeFileWhenClick !== 'file'"  ><font-awesome-icon icon="trash-alt"/></el-button>
                         </span>
-                        <span v-if="data.type === 'file'" >
-                            <font-awesome-icon icon="file-alt"/>
-                        </span>
-                        <span>{{ node.label }}</span>
                     </div>
-                </span>
-                </el-tree>
-            </el-col>
-            <el-dialog
-                :title="isCreateFolderClicked? 'Create Folder' : 'Create File'"
-                :visible.sync="openDialogFolder"
-                width="30%"
-                >
-                <el-alert v-if="!success"
-                    :title="message"
-                    type="error">
-                </el-alert>
-                <el-input :placeholder="isCreateFolderClicked? 'Folder Name' : 'File Name'" v-model="input"></el-input>
-                <el-input v-if="isCreateFileClicked"
-                    type="textarea"
-                    :rows="2"
-                    placeholder="Content"
-                    v-model="textarea">
-                </el-input>
-                <span slot="footer" class="dialog-footer">
-                    <el-button @click="openDialogFolder = false">Cancel</el-button>
-                    <el-button v-if="isCreateFolderClicked" type="primary" @click="createDir">Confirm</el-button>
-                    <el-button v-if="isCreateFileClicked" type="primary" @click="createFile">Confirm</el-button> 
-                </span>
-            </el-dialog>
-            <el-dialog
-                title="Delete File"
-                :visible.sync="openDialogDeleteFile"
-                width="30%"
-                >
-                <el-alert v-if="!success"
-                    :title="message"
-                    type="error">
-                </el-alert>
-                <span>Are you sure you want to delete this file?</span>
-                <span slot="footer" class="dialog-footer">
-                    <el-button @click="openDialogDeleteFile = false">Cancel</el-button>
-                    <el-button type="primary" @click="deleteFile">Delete</el-button> 
-                </span>
-            </el-dialog>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col>
+                    <el-tree 
+                        :data="dirTree" 
+                        :props="defaultProps"
+                        highlight-current
+                        @node-click="handleNodeClick"
+                        :expand-on-click-node="false">
+                        >
+                    >
+                    <span class="custom-tree-node" slot-scope="{ node, data }">
+                        <div>
+                            <span v-if = "data.type === 'folder'">
+                                <font-awesome-icon icon="folder"/>
+                            </span>
+                            <span v-if="data.type === 'file'" >
+                                <font-awesome-icon icon="file-alt"/>
+                            </span>
+                            <span>{{ node.label }}</span>
+                        </div>
+                    </span>
+                    </el-tree>
+                </el-col>
+                <el-dialog
+                    :title="isCreateFolderClicked? 'Create Folder' : 'Create File'"
+                    :visible.sync="openDialogFolder"
+                    width="30%"
+                    >
+                    <el-alert v-if="!success"
+                        :title="message"
+                        type="error">
+                    </el-alert>
+                    <el-input :placeholder="isCreateFolderClicked? 'Folder Name' : 'File Name'" v-model="input"></el-input>
+                    <el-input v-if="isCreateFileClicked"
+                        type="textarea"
+                        :rows="2"
+                        placeholder="Content"
+                        v-model="textarea">
+                    </el-input>
+                    <span slot="footer" class="dialog-footer">
+                        <el-button @click="openDialogFolder = false">Cancel</el-button>
+                        <el-button v-if="isCreateFolderClicked" type="primary" @click="createDir">Confirm</el-button>
+                        <el-button v-if="isCreateFileClicked" type="primary" @click="createFile">Confirm</el-button> 
+                    </span>
+                </el-dialog>
+                <el-dialog
+                    title="Delete File"
+                    :visible.sync="openDialogDeleteFile"
+                    width="30%"
+                    >
+                    <el-alert v-if="!success"
+                        :title="message"
+                        type="error">
+                    </el-alert>
+                    <span>Are you sure you want to delete this file?</span>
+                    <span slot="footer" class="dialog-footer">
+                        <el-button @click="openDialogDeleteFile = false">Cancel</el-button>
+                        <el-button type="primary" @click="deleteFile">Delete</el-button> 
+                    </span>
+                </el-dialog>
         </el-row>
+        </el-col>
+        <el-col :span="16">
+            <file-data-table
+                v-if="isShowTableFileData"
+                :fileData = "fileData"
+                :path = "pathDirWhenClicked"
+                @saveFileData = "saveFileData"
+            >
+            </file-data-table>
+        </el-col>
     </el-row>
 </template>
 <script>
 import {mapGetters, mapActions} from 'vuex'
 import axios from 'axios'
 import { Loading } from 'element-ui'
+import fileDataTable from '@/components/files/fileDataTable'
 
 export default {
     data() {
         return {
             textarea: '',
             input: '',
+            success: true,
+            message: '',
             openDialogFolder: false,
             openDialogDeleteFile: false,
             dirTree: [],
             pathDirWhenClicked: '',
-            typeFile: '',
-            success: true,
-            message: '',
+            typeFileWhenClick: '',
             isCreateFolderClicked: false,
             isCreateFileClicked: false,
+            fileData: [],
+            isShowTableFileData: false,
+            rowFileTableState: [],
             defaultProps: {
                 children: 'children',
                 label: 'name'
             }
         }
     },
+    components: {
+        'file-data-table': fileDataTable
+    },
+
     created() {
         this.getDirTree()
+    },
+    watch: {
+        fileData: function() {
+            this.isShowTableFileData = true
+        }
     },
     methods: {
         getDirTree() {
@@ -148,7 +171,7 @@ export default {
                 this.message = reponse.message
                 if(this.success) {
                     this.openDialogFolder = false
-                    this.typeFile = ''
+                    this.typeFileWhenClick = ''
                     this.informSuccess(this.message)
                     this.getDirTree()
                 }
@@ -164,7 +187,7 @@ export default {
                 if(this.success) {
                     this.openDialogDeleteFile = false
                     this.informSuccess(this.message)
-                    this.typeFile = ''
+                    this.typeFileWhenClick = ''
                     this.getDirTree()
                 }
             })
@@ -193,7 +216,7 @@ export default {
                 this.message = reponse.message
                 if(this.success) {
                     this.openDialogFolder = false
-                    this.typeFile = ''
+                    this.typeFileWhenClick = ''
                     this.informSuccess(this.message)
                     this.getDirTree()
                 }
@@ -229,12 +252,34 @@ export default {
             this.$message({
                 message: mess,
                 type: 'success'
-        });
+            });
         },
+        loadFileData(file) {
+            this.$axios.$post('/api/file/txt/read', {file}).then(reponse => {
+                this.success = reponse.success
+                this.message = reponse.message
+                this.fileData = reponse.fileData
+                this.rowFileTableState = this.fileData.map(index => {
+                    {edited: false}
+                })
+            })
+        },
+        saveFileData(data){
+            console.log(data)
+            this.$axios.$post('/api/file/txt/save', data).then(reponse => {
+                this.success = reponse.success
+                this.message = reponse.message
+                this.fileData = reponse.newFileData
+            })
+        },
+
         handleNodeClick(data) {
             this.pathDirWhenClicked = data.path
-            this.typeFile = data.type
+            this.typeFileWhenClick = data.type
             this.isFolderOpen = true
+            if(data.type === 'file') {
+                this.loadFileData(data.path)
+            }
         }
     }
 }
@@ -244,13 +289,13 @@ export default {
         margin-bottom: 20px
     }
     .custom-tree-node {
-        font-size: 36px;
+        font-size: 28px;
         flex: 1;
         display: flex;
         justify-content: space-between;
     }
     .el-tree-node__content{
-        height: 50px;
+        height: 36px;
     }
 
     .el-button+.el-button {

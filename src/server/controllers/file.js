@@ -151,3 +151,53 @@ exports.deleteDir = ({dirName, dir}) => {
         })
     })
 }
+
+
+exports.readFileTxt = ({file}) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(file, 'utf8').then(text => {
+            let fileData = text.split('.').map(line => {
+                let arr = line.split(',').map(item => item.trim())
+                return {
+                    order: arr[0],
+                    name: arr[1],
+                    address: arr[2],
+                    date: arr[3]
+                }
+            });
+            fileData.splice(fileData.length - 1, 1)
+            resolve(fileData)
+        })
+        .catch(e => {
+            reject(e)
+        })
+    })
+}
+
+
+exports.saveFileTxt = ({index, path, data}) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, 'utf8').then(text => {
+            let fileData = text.split('.')
+            fileData[index] = data.join(',') + '.'
+            fileData = fileData.map(item => item.trim())
+            fs.writeFile(path, fileData.join('\n') + '.').then(() => {
+                let newFileData = fileData.map(line => {
+                    let arr = line.split(',').map(item => item.trim())
+                    return {
+                        order: arr[0],
+                        name: arr[1],
+                        address: arr[2],
+                        date: arr[3]
+                    }
+                })
+                newFileData.splice(newFileData.length - 1, 1)
+                resolve(newFileData)
+            })
+            .catch(e => {
+                reject(e)
+            })
+        })
+        .catch(e => reject(e))
+    })
+}

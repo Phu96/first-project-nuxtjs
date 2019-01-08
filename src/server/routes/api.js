@@ -115,4 +115,40 @@ router.post('/file/deleteDir', (req, res, next) => {
     })
 })
 
+
+router.post('/file/txt/read', (req, res, next) => {
+    fileController.readFileTxt(req.body)
+    .then((fileData) => {
+        res.send({
+            success: true,
+            message: 'get file data successfully',
+            fileData: fileData
+        })
+    })
+    .catch(e => {
+        res.send({
+            success: false,
+            fileData: [],
+            message: e
+        })
+    })
+})
+
+
+router.post('/file/txt/save', (req, res, next) => {
+    fileController.saveFileTxt(req.body).then(newFileData => {
+        console.log('aaaa')
+        res.send({
+            success: true,
+            message: 'data saved',
+            newFileData: newFileData
+        })
+    })
+    .catch(e => {
+        res.send({
+            success: false,
+            message: e
+        })
+    })
+})
 module.exports = router
