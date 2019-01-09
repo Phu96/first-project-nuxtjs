@@ -1,26 +1,5 @@
 <template>
     <el-row>
-        <!-- <el-row :gutter="10">
-            <el-col :span="4">
-                <el-input placeholder="Subdirectory name" v-model="inputDir"></el-input>
-            </el-col>
-            <el-col :span="4">
-                <el-button type="primary" round @click="addSubDir">Create</el-button>
-            </el-col>
-            <el-col :span="4">
-                <el-select v-model="selectedChildDir" placeholder="Select subdirectory" ref = "option">
-                    <el-option
-                        v-for="(childDir, index) in childDirs"
-                        :key="index"
-                        :label="childDir"
-                        :value="childDir">
-                    </el-option>
-                </el-select>
-            </el-col>
-            <el-col :span="4">
-                <el-button type="primary" round @click="pickSubDir">Change Directory</el-button>
-            </el-col>
-        </el-row> -->
         <el-col :span = "8">
             <el-row class="functional_file_system">
                 <el-col>
@@ -102,6 +81,7 @@
                 :fileData = "fileData"
                 :path = "pathDirWhenClicked"
                 @saveFileData = "saveFileData"
+                @deleteRowFileData = "deleteRowFileData"
             >
             </file-data-table>
         </el-col>
@@ -259,20 +239,22 @@ export default {
                 this.success = reponse.success
                 this.message = reponse.message
                 this.fileData = reponse.fileData
-                this.rowFileTableState = this.fileData.map(index => {
-                    {edited: false}
-                })
             })
         },
         saveFileData(data){
-            console.log(data)
             this.$axios.$post('/api/file/txt/save', data).then(reponse => {
                 this.success = reponse.success
                 this.message = reponse.message
                 this.fileData = reponse.newFileData
             })
         },
-
+        deleteRowFileData({index, path}) {
+            this.$axios.$post('/api/file/txt/deleteRow', {index, path}).then(reponse => {
+                this.success = reponse.success
+                this.message = reponse.message
+                this.fileData = reponse.newFileData
+            })
+        },
         handleNodeClick(data) {
             this.pathDirWhenClicked = data.path
             this.typeFileWhenClick = data.type

@@ -57,7 +57,7 @@ module.exports = {
   */
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
-    baseURL: 'http://de164a88.ngrok.io',
+    baseURL: 'http://dc6d9347.ngrok.io',
     proxy: false,
     credentials: false
   },

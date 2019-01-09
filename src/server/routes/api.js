@@ -137,10 +137,27 @@ router.post('/file/txt/read', (req, res, next) => {
 
 router.post('/file/txt/save', (req, res, next) => {
     fileController.saveFileTxt(req.body).then(newFileData => {
-        console.log('aaaa')
         res.send({
             success: true,
             message: 'data saved',
+            newFileData: newFileData
+        })
+    })
+    .catch(e => {
+        res.send({
+            success: false,
+            message: e
+        })
+    })
+})
+
+
+
+router.post('/file/txt/deleteRow', (req, res, next) => {
+    fileController.deleteRowFileTxt(req.body).then(newFileData => {
+        res.send({
+            success: true,
+            message: 'delete row file successfully',
             newFileData: newFileData
         })
     })

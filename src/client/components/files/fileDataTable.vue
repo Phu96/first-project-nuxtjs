@@ -1,57 +1,72 @@
 <template>
-    <el-table
-        :data="fileData"
-        style="width: 100%">
-        <el-table-column
-            prop="order"
-            label="STT"
-            width="180">
-            <template slot-scope="scope">
-                <span v-if="!rowTableState[scope.$index].edited">{{scope.row.order}}</span>
-                <el-input v-if="rowTableState[scope.$index].edited"  v-model="order"></el-input>
-            </template>
-        </el-table-column>
-        <el-table-column
-            label="Name"
-            width="180">
-            <template slot-scope="scope">
-                <span v-if="!rowTableState[scope.$index].edited">{{scope.row.name}}</span>
-                <el-input v-if="rowTableState[scope.$index].edited"  v-model="name"></el-input>
-            </template>
-        </el-table-column>
-        <el-table-column
-            prop="address"
-            label="Address">
-            <template slot-scope="scope">
-                <span v-if="!rowTableState[scope.$index].edited">{{scope.row.address}}</span>
-                <el-input v-if="rowTableState[scope.$index].edited"  v-model="address"></el-input>
-            </template>
-        </el-table-column>
-        <el-table-column
-            prop="date"
-            label="Date">
-            <template slot-scope="scope">
-                <span v-if="!rowTableState[scope.$index].edited">{{scope.row.date}}</span>
-                <el-input v-if="rowTableState[scope.$index].edited" v-model="date" ></el-input>
-            </template>
-        </el-table-column>
-        <el-table-column
-            fixed="right"
-            label="Operations"
-            width="120">
-            <template slot-scope="scope">
-                <el-button v-if="!rowTableState[scope.$index].edited" @click="handleClick(scope)" type="text" size="small" :disabled = "isEdit">Detail</el-button>
-                <el-button v-if="!rowTableState[scope.$index].edited" @click="handleEditClick(scope)" type="text" size="small" :disabled = "isEdit">Edit</el-button>
-                <el-button v-if="rowTableState[scope.$index].edited" @click="handleSaveClick(scope)" type="text" size="small">Save</el-button>
-            </template>
-        </el-table-column>
-    </el-table>
+    <el-row>
+        <el-table
+            :data="fileData"
+            style="width: 100%">
+            <el-table-column
+                prop="order"
+                label="STT"
+                width="180">
+                <template slot-scope="scope">
+                    <span v-if="!rowTableState[scope.$index].edited">{{scope.row.order}}</span>
+                    <el-input v-if="rowTableState[scope.$index].edited"  v-model="order"></el-input>
+                </template>
+            </el-table-column>
+            <el-table-column
+                label="Name"
+                width="180">
+                <template slot-scope="scope">
+                    <span v-if="!rowTableState[scope.$index].edited">{{scope.row.name}}</span>
+                    <el-input v-if="rowTableState[scope.$index].edited"  v-model="name"></el-input>
+                </template>
+            </el-table-column>
+            <el-table-column
+                prop="address"
+                label="Address">
+                <template slot-scope="scope">
+                    <span v-if="!rowTableState[scope.$index].edited">{{scope.row.address}}</span>
+                    <el-input v-if="rowTableState[scope.$index].edited"  v-model="address"></el-input>
+                </template>
+            </el-table-column>
+            <el-table-column
+                prop="date"
+                label="Date">
+                <template slot-scope="scope">
+                    <span v-if="!rowTableState[scope.$index].edited">{{scope.row.date}}</span>
+                    <el-input v-if="rowTableState[scope.$index].edited" v-model="date" ></el-input>
+                </template>
+            </el-table-column>
+            <el-table-column
+                fixed="right"
+                label="Operations"
+                width="120">
+                <template slot-scope="scope">
+                    <el-button v-if="!rowTableState[scope.$index].edited" @click="handleDeleteClick(scope)" type="text" size="small" :disabled = "isEdit">Delete</el-button>
+                    <el-button v-if="!rowTableState[scope.$index].edited" @click="handleEditClick(scope)" type="text" size="small" :disabled = "isEdit">Edit</el-button>
+                    <el-button v-if="rowTableState[scope.$index].edited" @click="handleSaveClick(scope)" type="text" size="small">Save</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-dialog
+            title="Tips"
+            :visible.sync="dialogVisible"
+            width="30%"
+            >
+            <span>Are you sure you want to delete this row?</span>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">Cancel</el-button>
+                <el-button type="primary" @click="handleDeleteRow">Confirm</el-button>
+            </span>
+        </el-dialog>
+    </el-row>
 </template>
 <script>
 export default {
     name: 'fileDataTable',
     data() {
         return {
+            indexRowDelete: '',
+            dialogVisible: false,
             isEdit: false,
             rowTableState: [],
             order: '',
@@ -78,17 +93,16 @@ export default {
         this.rowTableState = this.fileData.map(index => {
             return {edited: false}
         })
-        console.log(this.rowTableState)
     },
     watch: {
-
     },
     computed: {
 
     },
     methods: {
-        handleClick(scope){
-            console.log(scope)
+        handleDeleteClick(scope){
+            this.dialogVisible = true
+            this.indexRowDelete = scope.$index
         },
         handleEditClick(scope) {
             this.rowTableState[scope.$index].edited = true
@@ -99,14 +113,20 @@ export default {
             this.date = scope.row.date
         },
         handleSaveClick(scope) {
-            console.log(this.path)
             this.isEdit = false
-             this.rowTableState[scope.$index].edited = false
+            this.rowTableState[scope.$index].edited = false
             this.$emit('saveFileData', {
                 index: scope.$index,
                 path: this.path,
                 data: [this.order, this.name, this.address, this.date]
             })
+        },
+        handleDeleteRow(scope){
+            this.$emit('deleteRowFileData', {
+                index: this.indexRowDelete,
+                path: this.path
+            })
+            this.dialogVisible = false
         }
     }
 }
