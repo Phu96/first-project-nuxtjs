@@ -185,17 +185,38 @@ exports.saveFileTxt = ({index, path, data}) => {
                 fileData[index] = data
                 fileData = fileData.map(line => line.join(','))
             }else {
-                const indexToChangePosition = fileData.findIndex(item => item[0] === data[0])
-                if (indexToChangePosition === 0) {
-                    fileData.unshift(data)
-                    fileData.splice(index + 1, 1)
+                if(Number(fileData[index][0]) > Number(data[0])) {
+                    const indexToChangePosition = fileData.findIndex(item => item[0] === data[0])
+                    if (indexToChangePosition === 0) {
+                        fileData.unshift(data)
+                        fileData.splice(index + 1, 1)
+                    }else {
+                        fileData.splice(indexToChangePosition, 0, data)
+                        fileData.splice(index + 1, 1)
+                    }
+                    for(var i = indexToChangePosition; i < index; i++) {
+                        fileData[i + 1][0] = (Number(fileData[i + 1][0]) + 1).toString()
+                    }
+
                 }else {
-                    fileData.splice(indexToChangePosition, 0, data)
-                    fileData.splice(index + 1, 1)
+                    const indexToChangePosition = fileData.findIndex(item => item[0] === data[0])
+                    if(indexToChangePosition < 0) {
+                        fileData.splice(index, 1)
+                        for(var i = index; i < fileData.length; i++){
+                            fileData[i][0] = (Number(fileData[i][0]) - 1).toString()
+                        }
+                        fileData.push([...data])
+                    }else {
+                        fileData.splice(indexToChangePosition + 1, 0, data)
+                        fileData.splice(index, 1)
+                        for(var i = index; i < indexToChangePosition; i++) {
+                            fileData[i][0] = (Number(fileData[i][0]) - 1).toString()
+                        }
+
+                    }
                 }
-                for(var i = indexToChangePosition; i < index; i++) {
-                    fileData[i + 1][0] = (Number(fileData[i + 1][0]) + 1).toString()
-                }
+                
+                fileData.sort((a, b) => Number(a[0]) - Number(b[0]))
                 fileData = fileData.map(line => line.join(','))
             }
             fs.writeFile(path, fileData.join('\n')).then(() => {
