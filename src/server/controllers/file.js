@@ -156,15 +156,18 @@ exports.deleteDir = ({dirName, dir}) => {
 exports.readFileTxt = ({file}) => {
     return new Promise((resolve, reject) => {
         fs.readFile(file, 'utf8').then(text => {
-            let fileData = text.split('\n').map(line => {
-                let arr = line.split(',').map(item => item.trim())
-                return {
-                    order: arr[0],
-                    name: arr[1],
-                    address: arr[2],
-                    date: arr[3]
-                }
-            });
+            let fileData = []
+            if(text.length){
+                fileData = text.split('\n').map(line => {
+                    let arr = line.split(',').map(item => item.trim())
+                    return {
+                        order: arr[0],
+                        name: arr[1],
+                        address: arr[2],
+                        date: arr[3]
+                    }
+                });
+            }
             resolve(fileData)
         })
         .catch(e => {
@@ -177,9 +180,24 @@ exports.readFileTxt = ({file}) => {
 exports.saveFileTxt = ({index, path, data}) => {
     return new Promise((resolve, reject) => {
         fs.readFile(path, 'utf8').then(text => {
-            let fileData = text.split('\n')
-            fileData[index] = data.join(',')
-            fileData = fileData.map(item => item.trim())
+            let fileData = text.split('\n').map(line => line.split(','))
+            if(fileData[index][0] === data[0]){
+                fileData[index] = data
+                fileData = fileData.map(line => line.join(','))
+            }else {
+                const indexToChangePosition = fileData.findIndex(item => item[0] === data[0])
+                if (indexToChangePosition === 0) {
+                    fileData.unshift(data)
+                    fileData.splice(index + 1, 1)
+                }else {
+                    fileData.splice(indexToChangePosition, 0, data)
+                    fileData.splice(index + 1, 1)
+                }
+                for(var i = indexToChangePosition; i < index; i++) {
+                    fileData[i + 1][0] = (Number(fileData[i + 1][0]) + 1).toString()
+                }
+                fileData = fileData.map(line => line.join(','))
+            }
             fs.writeFile(path, fileData.join('\n')).then(() => {
                 let newFileData = fileData.map(line => {
                     let arr = line.split(',').map(item => item.trim())
@@ -231,6 +249,36 @@ exports.deleteRowFileTxt = ({index, path}) => {
                 console.log(e)
                 reject(e)
             })
+        })
+        .catch(e => reject(e))
+    })
+}
+
+exports.createRowFileTxt = ({path, data}) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, 'utf8').then(text => {
+            let fileData = []
+            if(!text.length) {
+                console.log('aaaaa')
+                fileData.push([fileData.length + 1, ...data])
+                console.log(fileData)
+            }else {
+                fileData = text.split('\n').map(line => line.split(','))
+                fileData.push([fileData.length + 1, ...data])
+            }
+            let newFileData = fileData.map(item => {
+                return {
+                    order: item[0],
+                    name: item[1],
+                    address: item[2],
+                    date: item[3]
+                }
+            })
+            fileData.map(line => line.join(','))
+            fs.writeFile(path, fileData.join('\n')).then(() => {
+                resolve(newFileData)
+            })
+            .catch(e => reject(e))
         })
         .catch(e => reject(e))
     })

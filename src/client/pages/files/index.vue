@@ -1,5 +1,5 @@
 <template>
-    <el-row>
+    <el-row :gutter = "20">
         <el-col :span = "8">
             <el-row class="functional_file_system">
                 <el-col>
@@ -82,6 +82,7 @@
                 :path = "pathDirWhenClicked"
                 @saveFileData = "saveFileData"
                 @deleteRowFileData = "deleteRowFileData"
+                @createRowFileData = "createRowFileData"
             >
             </file-data-table>
         </el-col>
@@ -243,6 +244,13 @@ export default {
         },
         saveFileData(data){
             this.$axios.$post('/api/file/txt/save', data).then(reponse => {
+                this.success = reponse.success
+                this.message = reponse.message
+                this.fileData = reponse.newFileData
+            })
+        },
+        createRowFileData({path, data}){
+            this.$axios.$post('/api/file/txt/createRow', {path, data}).then(reponse => {
                 this.success = reponse.success
                 this.message = reponse.message
                 this.fileData = reponse.newFileData

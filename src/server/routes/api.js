@@ -168,4 +168,21 @@ router.post('/file/txt/deleteRow', (req, res, next) => {
         })
     })
 })
+
+
+router.post('/file/txt/createRow', (req, res, next) => {
+    fileController.createRowFileTxt(req.body).then(newFileData => {
+        res.send({
+            success: true,
+            message: 'row file data table created',
+            newFileData: newFileData
+        })
+    })
+    .catch(e => {
+        res.send({
+            success: false,
+            message: e
+        })
+    })
+})
 module.exports = router

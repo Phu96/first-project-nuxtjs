@@ -1,5 +1,10 @@
 <template>
+    
     <el-row>
+        <create-row
+            @createRow = "createRow"
+        >
+        </create-row>
         <el-table
             :data="fileData"
             style="width: 100%">
@@ -61,8 +66,12 @@
     </el-row>
 </template>
 <script>
+import createRowFileDataTable from '@/components/files/createRowFileDataTable'
 export default {
     name: 'fileDataTable',
+    components: {
+        'create-row': createRowFileDataTable
+    },
     data() {
         return {
             indexRowDelete: '',
@@ -95,6 +104,13 @@ export default {
         })
     },
     watch: {
+        fileData: {
+            handler(newVal, oldVal){
+                this.rowTableState = newVal.map(index => {
+                    return {edited: false}
+                })
+            }
+        }
     },
     computed: {
 
@@ -127,6 +143,12 @@ export default {
                 path: this.path
             })
             this.dialogVisible = false
+        },
+        createRow(data){
+            this.$emit('createRowFileData', {
+                path: this.path,
+                data: data
+            })
         }
     }
 }
