@@ -183,42 +183,46 @@ exports.saveFileTxt = ({index, path, data}) => {
             let fileData = text.split('\n').map(line => line.split(','))
             if(fileData[index][0] === data[0]){
                 fileData[index] = data
-                fileData = fileData.map(line => line.join(','))
-            }else {
-                if(Number(fileData[index][0]) > Number(data[0])) {
-                    const indexToChangePosition = fileData.findIndex(item => item[0] === data[0])
-                    if (indexToChangePosition === 0) {
-                        fileData.unshift(data)
-                        fileData.splice(index + 1, 1)
-                    }else {
-                        fileData.splice(indexToChangePosition, 0, data)
-                        fileData.splice(index + 1, 1)
-                    }
-                    for(var i = indexToChangePosition; i < index; i++) {
-                        fileData[i + 1][0] = (Number(fileData[i + 1][0]) + 1).toString()
-                    }
-
-                }else {
-                    const indexToChangePosition = fileData.findIndex(item => item[0] === data[0])
-                    if(indexToChangePosition < 0) {
-                        fileData.splice(index, 1)
-                        for(var i = index; i < fileData.length; i++){
-                            fileData[i][0] = (Number(fileData[i][0]) - 1).toString()
-                        }
-                        fileData.push([...data])
-                    }else {
-                        fileData.splice(indexToChangePosition + 1, 0, data)
-                        fileData.splice(index, 1)
-                        for(var i = index; i < indexToChangePosition; i++) {
-                            fileData[i][0] = (Number(fileData[i][0]) - 1).toString()
-                        }
-
-                    }
-                }
-                
-                fileData.sort((a, b) => Number(a[0]) - Number(b[0]))
-                fileData = fileData.map(line => line.join(','))
             }
+            if(Number(fileData[index][0]) > Number(data[0])) {
+                const indexWhenChangeOrdering = fileData.findIndex(item => item[0] === data[0])
+                if(indexWhenChangeOrdering < 0 ) {
+                    for(var i = 0; i < index; i++) {
+                        fileData[i][0] = (Number(fileData[i][0]) + 1).toString()
+                    }
+                    fileData[index] = data
+                    fileData.sort((a, b) => Number(a[0]) - Number(b[0]))
+                }else {
+                    for(var i = indexWhenChangeOrdering; i < index; i++) {
+                        fileData[i][0] = (Number(fileData[i][0]) + 1).toString()
+                    }
+                    fileData[index] = data
+                    fileData.sort((a, b) => Number(a[0]) - Number(b[0]))
+                }
+            }
+            if(Number(fileData[index][0]) < Number(data[0])) {
+                const indexWhenChangeOrdering = fileData.findIndex(item => item[0] === data[0])
+                console.log(indexWhenChangeOrdering)
+                if (indexWhenChangeOrdering < 0){
+                    try {
+                        for(var i = index + 1; i <= fileData.length; i++) {
+                            fileData[i][0] = (Number(fileData[i][0]) - 1).toString()
+                        }
+                    }catch(e) {
+                        console.log(e)
+                    }
+                    fileData[index] = data
+                    fileData.sort((a, b) => Number(a[0]) - Number(b[0]))
+                    console.log(fileData)
+                }else {
+                    for(var i = index + 1; i < indexWhenChangeOrdering + 1; i++) {
+                        fileData[i][0] = (Number(fileData[i][0]) - 1).toString()
+                    }
+                    fileData[index] = data
+                    fileData.sort((a, b) => Number(a[0]) - Number(b[0]))
+                }
+            }
+            fileData = fileData.map(line => line.join(','))
             fs.writeFile(path, fileData.join('\n')).then(() => {
                 let newFileData = fileData.map(line => {
                     let arr = line.split(',').map(item => item.trim())
@@ -280,13 +284,12 @@ exports.createRowFileTxt = ({path, data}) => {
         fs.readFile(path, 'utf8').then(text => {
             let fileData = []
             if(!text.length) {
-                console.log('aaaaa')
                 fileData.push([fileData.length + 1, ...data])
-                console.log(fileData)
             }else {
                 fileData = text.split('\n').map(line => line.split(','))
                 fileData.push([fileData.length + 1, ...data])
             }
+            fileData.sort((a, b) => Number(a[0]) - Number(b[0]))
             let newFileData = fileData.map(item => {
                 return {
                     order: item[0],
