@@ -1,0 +1,9 @@
+{
+    "couchbase": {
+        "endPoint": "localhost:8091",
+        "bucket": "demo",
+        "user": "visca",
+        "password": "123456",
+        "hostName": "127.0.0.1"
+    }
+}

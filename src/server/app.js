@@ -3,11 +3,28 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const cors = require('cors')
+const config = require('./utils/config')
 
+/*
+=============COUCHBASE============ 
+*/
+const couchbase = require('couchbase')
+const cluster  = new couchbase.Cluster('couchbase://localhost')
+cluster.authenticate(config.couchbase.user, config.couchbase.password)
+const bucket = cluster.openBucket(config.couchbase.bucket)
+bucket.on('error', function(err) {
+  console.log(err)
+})
+
+/* 
+================Routes=================
+*/
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');
+
+
+
 
 var app = express();
 
