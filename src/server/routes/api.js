@@ -2,6 +2,7 @@ const fs = require('fs-extra');
 const path = require('path')
 
 const fileController = require('../controllers/file')
+const userController = require('../controllers/user')
 
 
 var express = require('express');
@@ -13,7 +14,9 @@ router.get('/', (req, res, next) => {
         message: "Hello World from Express JS"
     })
 })
-
+/*
+===============File API=======================
+ */
 router.get('/file/getDirTree', (req, res, next) => {
     fileController.getAllDirTree()
     .then((dirTree) => {
@@ -182,6 +185,42 @@ router.post('/file/txt/createRow', (req, res, next) => {
         res.send({
             success: false,
             message: e
+        })
+    })
+})
+
+/*
+====================USER API=====================
+ */
+router.get('/user/getAll', (req, res, next) => {
+    userController.getAll().then(listUser => {
+        res.send({
+            success: true,
+            message: 'get list user successfully',
+            listUser: listUser
+        })
+    })
+    .catch(e => {
+        res.send({
+            success: false,
+            message: e,
+        })
+    })
+})
+
+router.post('/user/create', (req, res, next) => {
+    userController.createUser(req.body).then(listUser => {
+        console.log(listUser.length)
+        res.send({
+            success: true,
+            message: 'user created successfully',
+            listUser: listUser
+        })
+    })
+    .catch(e => {
+        res.send({
+            success: false,
+            message: e,
         })
     })
 })

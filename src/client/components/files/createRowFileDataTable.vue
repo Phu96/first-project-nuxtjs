@@ -1,5 +1,5 @@
 <template>
-     <el-row :gutter = "20">
+    <el-row :gutter = "20">
         <el-col :span = "6"><el-input placeholder="Input name" v-model="inputName"></el-input></el-col>
         <el-col :span = "6"><el-input placeholder="Input address" v-model="inputAddress"></el-input></el-col>
         <el-col :span = "6"><el-input placeholder="Input date" v-model="inputDate"></el-input></el-col>

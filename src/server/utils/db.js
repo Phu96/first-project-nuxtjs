@@ -62,6 +62,17 @@ exports.query = (sql) => {
                 return
             }
             resolve(result)
-        }) 
+        })
+    })
+}
+//counter
+
+exports.counter = (counterKey) => {
+    return new Promise((resolve, reject) => {
+        db.counter(counterKey, 1, {initial: 0}, function(err, res) {
+            if (err) reject(err)
+            // insert code here
+            resolve(res.value)
+        });
     })
 }

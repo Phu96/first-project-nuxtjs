@@ -76,6 +76,7 @@
         </el-row>
         </el-col>
         <el-col :span="16">
+            
             <file-data-table
                 v-if="isShowTableFileData"
                 :fileData = "fileData"
